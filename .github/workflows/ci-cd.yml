@@ -9,51 +9,59 @@ on:
 jobs:
   test-build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Test Backend Docker Build
-      run: |
-        echo "🔨 Testing Backend Docker build..."
-        cd backend
-        docker build -t test-backend .
-        echo "✅ Backend build successful!"
+      - name: Create test environment files
+        run: |
+          echo "📝 Creating test environment files..."
+          # Создаем тестовые .env файлы на основе .example файлов
+          cp backend/.env.example backend/.env
+          cp frontend/.env.local.example frontend/.env.local
+          echo "✅ Environment files created"
 
-    - name: Test Frontend Docker Build  
-      run: |
-        echo "🔨 Testing Frontend Docker build..."
-        cd frontend
-        docker build -t test-frontend .
-        echo "✅ Frontend build successful!"
+      - name: Test Backend Docker Build
+        run: |
+          echo "🔨 Testing Backend Docker build..."
+          cd backend
+          docker build -t test-backend .
+          echo "✅ Backend build successful!"
 
-    - name: Test Docker Compose Config
-      run: |
-        echo "🔨 Testing Docker Compose configuration..."
-        # Используем docker compose (новая версия) вместо docker-compose
-        docker compose config --quiet
-        echo "✅ Docker Compose config is valid!"
+      - name: Test Frontend Docker Build
+        run: |
+          echo "🔨 Testing Frontend Docker build..."
+          cd frontend
+          docker build -t test-frontend .
+          echo "✅ Frontend build successful!"
 
-    - name: Success Notification
-      run: |
-        echo "🎉 All builds completed successfully!"
-        echo "✅ Backend Docker build: PASSED"
-        echo "✅ Frontend Docker build: PASSED" 
-        echo "✅ Docker Compose config: VALID"
+      - name: Test Docker Compose Config
+        run: |
+          echo "🔨 Testing Docker Compose configuration..."
+          # Убираем version из docker-compose.yml и тестируем
+          docker compose config --quiet
+          echo "✅ Docker Compose config is valid!"
+
+      - name: Success Notification
+        run: |
+          echo "🎉 All builds completed successfully!"
+          echo "✅ Backend Docker build: PASSED"
+          echo "✅ Frontend Docker build: PASSED" 
+          echo "✅ Docker Compose config: VALID"
 
   deploy-notification:
     needs: test-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Deploy Ready Notification
-      run: |
-        echo "🚀 Build successful! Ready for deployment!"
-        echo "📍 All Docker images built successfully"
-        echo "📍 Configuration validated"
-        echo "📍 Ready for server deployment"
+      - name: Deploy Ready Notification
+        run: |
+          echo "🚀 Build successful! Ready for deployment!"
+          echo "📍 All Docker images built successfully"
+          echo "📍 Configuration validated"
+          echo "📍 Ready for server deployment"
