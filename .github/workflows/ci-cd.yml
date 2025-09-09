@@ -7,7 +7,6 @@ on:
     branches: [ main ]
 
 jobs:
-  # Тестирование сборки без push в registry
   test-build:
     runs-on: ubuntu-latest
 
@@ -32,10 +31,11 @@ jobs:
           docker build -t test-frontend .
           echo "✅ Frontend build successful!"
 
-      - name: Test Docker Compose
+      - name: Test Docker Compose Config
         run: |
           echo "🔨 Testing Docker Compose configuration..."
-          docker-compose config
+          # Используем docker compose (новая версия) вместо docker-compose
+          docker compose config --quiet
           echo "✅ Docker Compose config is valid!"
 
       - name: Success Notification
@@ -45,7 +45,6 @@ jobs:
           echo "✅ Frontend Docker build: PASSED" 
           echo "✅ Docker Compose config: VALID"
 
-  # Деплoy уведомление (пока без реального деплоя)
   deploy-notification:
     needs: test-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -54,7 +53,7 @@ jobs:
     steps:
       - name: Deploy Ready Notification
         run: |
-          echo "🚀 Build successful! Ready for deployment to:"
-          echo "📍 Development: Auto-deploy ready"
-          echo "📍 Staging: Manual approval required" 
-          echo "📍 Production: Manual approval + review required"
+          echo "🚀 Build successful! Ready for deployment!"
+          echo "📍 All Docker images built successfully"
+          echo "📍 Configuration validated"
+          echo "📍 Ready for server deployment"
