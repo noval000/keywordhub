@@ -1,39 +1,29 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15
-    container_name: kh_postgres
+    container_name: kh_postgres_dev
     environment:
-      POSTGRES_DB: keywordhub
+      POSTGRES_DB: keywordhub_dev
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
     ports:
       - "5432:5432"
     volumes:
-      - kh_db:/var/lib/postgresql/data
-    # Улучшенные настройки PostgreSQL для стабильности
-    command: >
-      postgres
-      -c shared_preload_libraries=pg_stat_statements
-      -c pg_stat_statements.track=all
-      -c max_connections=200
-      -c authentication_timeout=300s
-      -c tcp_keepalives_idle=600
-      -c tcp_keepalives_interval=30
-      -c tcp_keepalives_count=3
-      -c log_statement=none
-      -c log_min_duration_statement=1000
+      - kh_db_dev:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d keywordhub"]
+      test: ["CMD-SHELL", "pg_isready -U app -d keywordhub_dev"]
       interval: 10s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      retries: 5
+      start_period: 10s
 
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: kh_api
+    container_name: kh_api_dev
     env_file:
       - ./backend/.env
     depends_on:
@@ -43,27 +33,33 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      # Добавляем tmpfs для улучшения производительности Chromium
       - /tmp:/tmp
-    # Добавляем переменные окружения для Puppeteer
     environment:
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
       - DISPLAY=:99
-    # Увеличиваем лимиты для парсера
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 1G
-    # Добавляем возможности для Chromium
+      - DEBUG=True
     cap_add:
       - SYS_ADMIN
     security_opt:
       - seccomp:unconfined
-    shm_size: 2gb
+    shm_size: 1gb
     command: ["bash", "start.sh"]
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kh_frontend_dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_ENVIRONMENT=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
 volumes:
-  kh_db:
+  kh_db_dev:
