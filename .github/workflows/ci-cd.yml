@@ -17,6 +17,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Create test environment files
+        run: |
+          echo "📝 Creating test environment files..."
+          # Создаем тестовые .env файлы на основе .example файлов
+          cp backend/.env.example backend/.env
+          cp frontend/.env.local.example frontend/.env.local
+          echo "✅ Environment files created"
+
       - name: Test Backend Docker Build
         run: |
           echo "🔨 Testing Backend Docker build..."
@@ -34,7 +42,7 @@ jobs:
       - name: Test Docker Compose Config
         run: |
           echo "🔨 Testing Docker Compose configuration..."
-          # Используем docker compose (новая версия) вместо docker-compose
+          # Убираем version из docker-compose.yml и тестируем
           docker compose config --quiet
           echo "✅ Docker Compose config is valid!"
 
