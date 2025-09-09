@@ -1,3 +1,4 @@
+# Многоэтапная сборка для оптимизации размера образа
 FROM node:18-alpine AS base
 
 # Установка зависимостей
@@ -5,6 +6,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Копируем package.json и package-lock.json
 COPY package*.json ./
 RUN npm config set registry https://registry.npmjs.org/ && \
     npm config set fetch-retry-mintimeout 20000 && \
@@ -25,7 +27,10 @@ RUN npm install --cache /tmp/.npm
 # Копируем исходный код
 COPY . .
 
+# Отключаем телеметрию Next.js
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Сборка для production
 RUN npm run build
 
 # Production образ
