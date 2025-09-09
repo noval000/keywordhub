@@ -2,18 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, staging ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
-  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
-
 jobs:
-  # Тестирование и сборка
-  test-and-build:
+  # Тестирование сборки без push в registry
+  test-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,90 +18,43 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test Backend Docker Build
+        run: |
+          echo "🔨 Testing Backend Docker build..."
+          cd backend
+          docker build -t test-backend .
+          echo "✅ Backend build successful!"
 
-      - name: Extract metadata (tags, labels) for Backend
-        id: meta-backend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha
+      - name: Test Frontend Docker Build
+        run: |
+          echo "🔨 Testing Frontend Docker build..."
+          cd frontend
+          docker build -t test-frontend .
+          echo "✅ Frontend build successful!"
 
-      - name: Extract metadata (tags, labels) for Frontend
-        id: meta-frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha
+      - name: Test Docker Compose
+        run: |
+          echo "🔨 Testing Docker Compose configuration..."
+          docker-compose config
+          echo "✅ Docker Compose config is valid!"
 
-      - name: Build and push Backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Success Notification
+        run: |
+          echo "🎉 All builds completed successfully!"
+          echo "✅ Backend Docker build: PASSED"
+          echo "✅ Frontend Docker build: PASSED" 
+          echo "✅ Docker Compose config: VALID"
 
-      - name: Build and push Frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Деплой на Development
-  deploy-dev:
-    needs: test-and-build
-    if: github.ref == 'refs/heads/develop'
+  # Деплoy уведомление (пока без реального деплоя)
+  deploy-notification:
+    needs: test-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: development
 
     steps:
-      - name: Deploy to Development
+      - name: Deploy Ready Notification
         run: |
-          echo "Deploying to development environment..."
-          # Здесь будут команды для деплоя на dev сервер
-
-  # Деплой на Staging
-  deploy-staging:
-    needs: test-and-build
-    if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
-    environment: staging
-
-    steps:
-      - name: Deploy to Staging
-        run: |
-          echo "Deploying to staging environment..."
-          # Здесь будут команды для деплоя на staging сервер
-
-  # Деплой на Production
-  deploy-prod:
-    needs: test-and-build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-
-    steps:
-      - name: Deploy to Production
-        run: |
-          echo "Deploying to production environment..."
-          # Здесь будут команды для деплоя на prod сервер
+          echo "🚀 Build successful! Ready for deployment to:"
+          echo "📍 Development: Auto-deploy ready"
+          echo "📍 Staging: Manual approval required" 
+          echo "📍 Production: Manual approval + review required"
