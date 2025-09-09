@@ -1,0 +1,64 @@
+/* ContentPlanPage.module.css */
+
+/* Кастомизация AG-Grid под современный дизайн */
+.ag-theme-alpine {
+    --ag-background-color: transparent;
+    --ag-header-background-color: rgba(249, 250, 251, 0.8);
+    --ag-odd-row-background-color: rgba(255, 255, 255, 0.4);
+    --ag-row-hover-color: rgba(59, 130, 246, 0.05);
+    --ag-selected-row-background-color: rgba(59, 130, 246, 0.1);
+    --ag-border-color: rgba(229, 231, 235, 0.5);
+    --ag-header-cell-hover-background-color: rgba(243, 244, 246, 0.8);
+    --ag-cell-horizontal-border: rgba(229, 231, 235, 0.3);
+    --ag-header-cell-moving-background-color: rgba(59, 130, 246, 0.1);
+    --ag-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --ag-font-size: 14px;
+    border-radius: 16px;
+}
+
+.ag-theme-alpine .ag-header {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+.ag-theme-alpine .ag-header-cell {
+    font-weight: 600;
+    color: #374151;
+    border-right: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.ag-theme-alpine .ag-row {
+    border: none;
+}
+
+.ag-theme-alpine .ag-cell {
+    border-right: 1px solid rgba(229, 231, 235, 0.3);
+    display: flex;
+    align-items: center;
+}
+
+/* Стили для статусов */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-published {
+    color: #059669;
+    background-color: #ecfdf5;
+}
+
+.status-draft {
+    color: #6b7280;
+    background-color: #f9fafb;
+}
+
+.status-pending {
+    color: #d97706;
+    background-color: #fffbeb;
+}
