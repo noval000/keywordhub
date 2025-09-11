@@ -70,6 +70,7 @@ const AnalyticsReport: React.FC<{ projectId?: string }> = ({ projectId }) => {
         queryFn: async () => {
             const params = projectId ? { project_id: projectId } : {};
             const response = await api.get<AnalyticsData>('/analytics/report', { params });
+            console.log(response.data);
             return response.data;
         }
     });
