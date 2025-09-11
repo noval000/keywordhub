@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { listUsers, fetchProjects, addProjectMember, removeProjectMember } from "@/lib/api";
 import { useModal } from "@/app/providers/modal";
-import { api } from "@/lib/api";
+import { api, updateUserContentAccess } from "@/lib/api";
 
 const PAGES = ["clusters", "content_plan"];
 
@@ -28,6 +28,8 @@ export default function GlobalAccessModal() {
         queryKey: ["projects"],
         queryFn: () => fetchProjects({ archived: false }),
     });
+
+    const [userContentAccess, setUserContentAccess] = useState<boolean>(false);
 
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const selectedUser = users.find(u => u.id === selectedUserId);
@@ -80,13 +82,17 @@ export default function GlobalAccessModal() {
                     }
                 });
                 setUserPageRoles(pageRoles);
+
+                // Найти пользователя и установить его настройки контент-плана
+                const user = users.find(u => u.id === selectedUserId);
+                setUserContentAccess(user?.can_view_all_content || false);
             })
             .catch(e => {
                 console.error("Ошибка загрузки данных пользователя:", e);
                 setError(e?.response?.data?.detail || "Ошибка запроса");
             })
             .finally(() => setLoading(false));
-    }, [selectedUserId]);
+    }, [selectedUserId, users]);
 
     const saveMutation = useMutation({
         mutationFn: async () => {
@@ -146,6 +152,26 @@ export default function GlobalAccessModal() {
                         page_roles: pageRoles,
                     });
                 }
+
+                // Обновляем настройку can_view_all_content для роли author
+                const currentUser = users.find(u => u.id === selectedUserId);
+                const contentPlanRole = userPageRoles["content_plan"];
+
+                // Определяем нужен ли полный доступ на основе роли согласно ТЗ
+                let shouldViewAll = false;
+                if (contentPlanRole === "admin" || contentPlanRole === "editor" || contentPlanRole === "viewer") {
+                    // Admin, Editor, Viewer видят все
+                    shouldViewAll = true;
+                } else if (contentPlanRole === "author") {
+                    // Author по умолчанию видит только свои записи
+                    shouldViewAll = userContentAccess; // Используем текущее состояние переключателя
+                }
+
+                // Обновляем настройку только если она изменилась
+                if (currentUser && currentUser.can_view_all_content !== shouldViewAll) {
+                    await updateUserContentAccess(selectedUserId, shouldViewAll);
+                }
+
             } catch (error) {
                 console.error("Ошибка при сохранении:", error);
                 throw error;
@@ -153,7 +179,21 @@ export default function GlobalAccessModal() {
         },
         onError: (e: any) => {
             console.error('Ошибка сохранения:', e);
-            setError(e?.response?.data?.detail || e?.message || "Ошибка сохранения");
+            let errorMessage = "Ошибка сохранения";
+            if (e?.response?.data?.detail) {
+                if (typeof e.response.data.detail === 'string') {
+                    errorMessage = e.response.data.detail;
+                } else if (Array.isArray(e.response.data.detail)) {
+                    errorMessage = e.response.data.detail.map(item =>
+                        typeof item === 'string' ? item : (item?.msg || 'Ошибка валидации')
+                    ).join(', ');
+                } else {
+                    errorMessage = "Ошибка сохранения данных";
+                }
+            } else if (e?.message) {
+                errorMessage = e.message;
+            }
+            setError(errorMessage);
         },
         onSuccess: () => {
             close();
@@ -195,6 +235,10 @@ export default function GlobalAccessModal() {
                     delete newRoles[page];
                     return newRoles;
                 });
+                // Сбрасываем настройку can_view_all_content если отключаем content_plan
+                if (page === "content_plan") {
+                    setUserContentAccess(false);
+                }
             } else {
                 copy.add(page);
                 // Добавляем роль по умолчанию при включении страницы
@@ -213,11 +257,37 @@ export default function GlobalAccessModal() {
             ...prev,
             [page]: role
         }));
+
+        // Если это контент-план и роль не author, автоматически включаем полный доступ
+        if (page === "content_plan") {
+            if (role === "editor" || role === "viewer") {
+                setUserContentAccess(true);
+            } else if (role === "author") {
+                // Для author оставляем текущее состояние переключателя
+                // setUserContentAccess остается как есть
+            }
+        }
     };
 
     // Подсчет активных доступов
     const activeProjectsCount = Object.keys(userProjectRoles).length;
     const activePagesCount = userPages.size;
+
+    // Получаем описание роли
+    const getRoleDescription = (role: string) => {
+        switch (role) {
+            case "admin":
+                return "Полный доступ + управление ролями";
+            case "editor":
+                return "Полный доступ ко всем записям";
+            case "author":
+                return "Создание новых + редактирование только своих";
+            case "viewer":
+                return "Только просмотр";
+            default:
+                return "";
+        }
+    };
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -477,14 +547,61 @@ export default function GlobalAccessModal() {
                                                             </label>
                                                             {userPages.has(page) && (
                                                                 <div className="flex items-center gap-3">
-                                                                    <select
-                                                                        className="border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[140px]"
-                                                                        value={userPageRoles[page] || "viewer"}
-                                                                        onChange={e => updatePageRole(page, e.target.value)}
-                                                                    >
-                                                                        <option value="viewer">👁️ Только просмотр</option>
-                                                                        <option value="editor">✏️ Полные права</option>
-                                                                    </select>
+                                                                    {page === "content_plan" ? (
+                                                                        // Специальная логика для контент-плана с четырьмя ролями
+                                                                        <div className="flex flex-col gap-2">
+                                                                            <select
+                                                                                className="border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[200px]"
+                                                                                value={userPageRoles[page] || "viewer"}
+                                                                                onChange={e => updatePageRole(page, e.target.value)}
+                                                                            >
+                                                                                <option value="viewer">👁️ Viewer</option>
+                                                                                <option value="author">📝 Author</option>
+                                                                                <option value="editor">✏️ Editor</option>
+                                                                            </select>
+
+                                                                            {/* Описание роли */}
+                                                                            <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded max-w-[200px]">
+                                                                                {getRoleDescription(userPageRoles[page] || "viewer")}
+                                                                            </div>
+
+                                                                            {/* Дополнительная настройка для Author */}
+                                                                            {userPageRoles[page] === "author" && !selectedUser?.is_superuser && (
+                                                                                <div className="flex flex-col gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg max-w-[200px]">
+                                                                                    <label className="flex items-center gap-2 text-sm">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={userContentAccess}
+                                                                                            onChange={e => setUserContentAccess(e.target.checked)} // ИСПРАВЛЕНО: было e.target.value
+                                                                                            className="w-4 h-4 accent-orange-600"
+                                                                                        />
+                                                                                        <span className="text-slate-700">Видеть все записи</span>
+                                                                                    </label>
+                                                                                    <div className="text-xs text-slate-500">
+                                                                                        {userContentAccess
+                                                                                            ? "Может видеть все записи, но редактировать только свои"
+                                                                                            : "Видит и редактирует только свои записи"
+                                                                                        }
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    ) : (
+                                                                        // Обычная логика для других разделов
+                                                                        <div className="flex flex-col gap-2">
+                                                                            <select
+                                                                                className="border border-slate-300 rounded-lg px-4 py-2 bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[140px]"
+                                                                                value={userPageRoles[page] || "viewer"}
+                                                                                onChange={e => updatePageRole(page, e.target.value)}
+                                                                            >
+                                                                                <option value="viewer">👁️ Viewer</option>
+                                                                                <option value="editor">✏️ Editor</option>
+                                                                            </select>
+                                                                            <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded max-w-[140px]">
+                                                                                {userPageRoles[page] === "editor" ? "Полные права" : "Только просмотр"}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -498,10 +615,12 @@ export default function GlobalAccessModal() {
                                                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                                     </svg>
                                                     <div className="text-sm">
-                                                        <div className="font-medium text-blue-800 mb-1">Информация о ролях:</div>
+                                                        <div className="font-medium text-blue-800 mb-2">Информация о ролях в контент-плане:</div>
                                                         <div className="text-blue-700 space-y-1">
-                                                            <div><strong>👁️ Только просмотр:</strong> Пользователь может видеть данные, но не может их изменять</div>
-                                                            <div><strong>✏️ Полные права:</strong> Пользователь может создавать, редактировать и удалять данные</div>
+                                                            <div><strong>👁️ Viewer:</strong> Только просмотр всех записей</div>
+                                                            <div><strong>📝 Author:</strong> Создание новых + редактирование только своих записей</div>
+                                                            <div><strong>✏️ Editor:</strong> Полный доступ ко всем записям</div>
+                                                            <div><strong>👑 Admin:</strong> Полный доступ + управление ролями</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -577,16 +696,16 @@ export default function GlobalAccessModal() {
                 )}
 
                 <style jsx>{`
-                    .animate-fade-in { 
+                    .animate-fade-in {
                         animation: fadeIn 0.4s ease-out;
                     }
                     @keyframes fadeIn {
-                        from { 
-                            opacity: 0; 
+                        from {
+                            opacity: 0;
                             transform: scale(0.96) translateY(-20px);
                         }
-                        to { 
-                            opacity: 1; 
+                        to {
+                            opacity: 1;
                             transform: scale(1) translateY(0);
                         }
                     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { cpUpdate, CPItem } from "@/lib/api";
+import { cpUpdate, CPItem, listClusterRegistry } from "@/lib/api";
 import Select from "@/components/ui/Select";
 import MetaSeoEditor from "@/components/content-plan/MetaSeoEditor";
 import { SECTION_OPTIONS, STATUS_OPTIONS } from "@/lib/cp-constants";
@@ -30,8 +30,10 @@ import {
     Save,
     Target,
     Tag,
-    AlertTriangle,
+    AlertTriangle, Info,
 } from "lucide-react";
+import DirectionSearchSelect from "@/components/content-plan/DirectionSearchSelect";
+import UserSelect from "@/components/ui/UserSelect";
 
 type Props = {
     open: boolean;
@@ -57,6 +59,8 @@ export default function ContentPlanEditModal({
 
     const [pending, setPending] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [directions, setDirections] = useState<string[]>([]);
+    const [loadingDirections, setLoadingDirections] = useState(false);
 
     const [form, setForm] = useState<FormState>({});
     const [monthUI, setMonthUI] = useState<string>("");
@@ -67,6 +71,83 @@ export default function ContentPlanEditModal({
     const allChecked = useMemo(
         () => projectIds.length > 0 && projectIds.every((id) => selectedProjects.includes(id)),
         [projectIds, selectedProjects]
+    );
+
+    // Получаем направления при открытии модала или изменении выбранных проектов
+    useEffect(() => {
+        if (!open) return;
+
+        const projectsToFetch = selectedProjects.length > 0 ? selectedProjects : (item?.project_id ? [item.project_id] : []);
+
+        if (projectsToFetch.length === 0) return;
+
+        const fetchDirections = async () => {
+            setLoadingDirections(true);
+            try {
+                // Получаем кластерные реестры для всех выбранных проектов
+                const allRegistries = await Promise.all(
+                    projectsToFetch.map(projectId => listClusterRegistry(projectId))
+                );
+
+                // Получаем пересечение направлений (те, что есть во ВСЕХ проектах)
+                const getIntersectionDirections = (registries: Array<Array<any>>) => {
+                    if (registries.length === 0) return [];
+
+                    // Если только один проект, возвращаем все его направления
+                    if (registries.length === 1) {
+                        return Array.from(
+                            new Set(
+                                registries[0]
+                                    .map(cluster => cluster.direction)
+                                    .filter(direction => direction && direction.trim() !== '')
+                            )
+                        ).sort();
+                    }
+
+                    // Для нескольких проектов ищем пересечение
+                    const firstProjectDirections = new Set(
+                        registries[0]
+                            .map(cluster => cluster.direction)
+                            .filter(direction => direction && direction.trim() !== '')
+                    );
+
+                    // Проверяем каждый последующий проект
+                    for (let i = 1; i < registries.length; i++) {
+                        const currentProjectDirections = new Set(
+                            registries[i]
+                                .map(cluster => cluster.direction)
+                                .filter(direction => direction && direction.trim() !== '')
+                        );
+
+                        // Удаляем направления, которых нет в текущем проекте
+                        for (const direction of firstProjectDirections) {
+                            if (!currentProjectDirections.has(direction)) {
+                                firstProjectDirections.delete(direction);
+                            }
+                        }
+                    }
+
+                    return Array.from(firstProjectDirections).sort();
+                };
+
+                const intersectionDirections = getIntersectionDirections(allRegistries);
+                setDirections(intersectionDirections);
+
+            } catch (err) {
+                console.error('Failed to fetch cluster registry:', err);
+                setDirections([]);
+            } finally {
+                setLoadingDirections(false);
+            }
+        };
+
+        fetchDirections();
+    }, [open, selectedProjects, item?.project_id]);
+
+// Создаем опции для Select направлений
+    const directionOptions = useMemo(() =>
+            directions.map(dir => ({ label: dir, value: dir })),
+        [directions]
     );
 
     useEffect(() => {
@@ -163,7 +244,7 @@ export default function ContentPlanEditModal({
                         <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white">
                             <Edit className="w-5 h-5" />
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-900">Редактировать текст</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Информация</h2>
                     </div>
                     <button
                         className="ml-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
@@ -229,15 +310,29 @@ export default function ContentPlanEditModal({
                                 />
                             </div>
 
-                            {/* Направление */}
+                            {/* Направление с кастомным поиском */}
                             <div className="relative">
-                                <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
-                                    placeholder="Направление"
-                                    value={form.direction ?? ""}
-                                    onChange={(e) => setField("direction", e.target.value || null)}
-                                />
+                                <div className="">
+                                    <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+
+                                    <DirectionSearchSelect
+                                        value={form.direction ?? ""}
+                                        onChange={(v) => setField("direction", v || null)}
+                                        options={directions}
+                                        placeholder={loadingDirections ? "Загрузка направлений..." : "Направление"}
+                                        disabled={loadingDirections}
+                                        className="w-full pl-12"
+                                    />
+                                </div>
+
+                                {/* Информационное сообщение вне relative positioning */}
+                                {selectedProjects.length > 1 && (
+                                    <div style={{position: "absolute", top: '-14px', fontSize: '10px'}} className="text-gray-500 flex items-center gap-1">
+                                        <Info className="w-3 h-3" />
+                                        Все направления из реестра кластеров
+                                        {directions.length === 0 && " (общих направлений не найдено)"}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Статус */}
@@ -254,12 +349,12 @@ export default function ContentPlanEditModal({
 
                             {/* Автор */}
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
-                                    placeholder="Автор"
+                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                <UserSelect
                                     value={form.author ?? ""}
-                                    onChange={(e) => setField("author", e.target.value || null)}
+                                    onChange={(v) => setField("author", v || null)}
+                                    placeholder="Автор"
+                                    className="w-full pl-12"
                                 />
                             </div>
 

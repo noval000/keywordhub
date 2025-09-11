@@ -17,8 +17,8 @@ PAGES = ["clusters", "content_plan"]
 
 # Схемы для ролей страниц
 class PageRoleIn(BaseModel):
-    page: str = Field(..., pattern="^(clusters|content_plan)$")  # ИСПРАВЛЕНО: regex -> pattern
-    role: str = Field(..., pattern="^(viewer|editor)$")          # ИСПРАВЛЕНО: regex -> pattern
+    page: str = Field(..., pattern="^(clusters|content_plan)$")
+    role: str = Field(..., pattern="^(viewer|editor|author|admin)$")  # Добавлен admin
 
 class PageRoleOut(BaseModel):
     page: str
@@ -62,12 +62,26 @@ async def require_page_access(db: AsyncSession, user, page: str, required_role: 
     if not has_access:
         raise HTTPException(403, f"Нет доступа к странице {page}")
 
-    # Проверяем роль для страницы (если требуется editor)
-    if required_role == "editor":
-        user_roles = user_page_roles.get(str(user.id), {})
-        page_role = user_roles.get(page, "viewer")
+    # Получаем роль пользователя
+    user_roles = user_page_roles.get(str(user.id), {})
+    page_role = user_roles.get(page, "viewer")
 
-        if page_role != "editor":
+    # Проверяем права согласно новой логике
+    if page == "content_plan":
+        if required_role == "viewer":
+            # Все роли могут просматривать
+            return
+        elif required_role == "editor":
+            # Для операций редактирования разрешаем admin, editor, author
+            if page_role not in ("admin", "editor", "author"):
+                raise HTTPException(403, f"Недостаточно прав для редактирования {page}")
+        elif required_role == "admin":
+            # Только admin может управлять ролями
+            if page_role != "admin":
+                raise HTTPException(403, f"Нужны права администратора для {page}")
+    else:
+        # Для других страниц используем старую логику
+        if required_role == "editor" and page_role != "editor":
             raise HTTPException(403, f"Недостаточно прав для редактирования {page}")
 
 
@@ -89,6 +103,61 @@ def get_user_page_roles(user_id: UUID) -> dict:
 def set_user_page_roles(user_id: UUID, page_roles: dict):
     """Устанавливает роли пользователя для страниц."""
     user_page_roles[str(user_id)] = page_roles
+
+
+def check_role_permissions(page_role: str, action: str, is_owner: bool = False) -> bool:
+    """
+    Проверяет разрешения роли для конкретного действия.
+    
+    Args:
+        page_role: Роль пользователя (viewer, author, editor, admin)
+        action: Действие (view, create, edit, delete, import)
+        is_owner: Является ли пользователь владельцем контента
+    
+    Returns:
+        bool: Разрешено ли действие
+    """
+    permissions = {
+        "admin": {
+            "view": True,
+            "create": True,
+            "edit": True,
+            "delete": True,
+            "import": True,
+        },
+        "editor": {
+            "view": True,
+            "create": True,
+            "edit": True,
+            "delete": True,
+            "import": True,
+        },
+        "author": {
+            "view": True,  # Author может просматривать (с учетом фильтрации в content_plan)
+            "create": True,  # Author может создавать записи
+            "edit": lambda is_owner: is_owner,  # Author может редактировать только свои
+            "delete": False,  # Author НЕ может удалять
+            "import": False,  # Author НЕ может импортировать
+        },
+        "viewer": {
+            "view": True,  # Viewer может только просматривать
+            "create": False,
+            "edit": False,
+            "delete": False,
+            "import": False,
+        }
+    }
+    
+    if page_role not in permissions:
+        return False
+    
+    permission = permissions[page_role].get(action, False)
+    
+    # Для author некоторые разрешения зависят от владения
+    if callable(permission):
+        return permission(is_owner)
+    
+    return permission
 
 
 # ==== ручки управления доступом ====
@@ -147,12 +216,16 @@ async def grant_page_access(
 ):
     """Предоставить доступ пользователю к странице с ролью."""
     if not getattr(current, "is_superuser", False):
-        raise HTTPException(403, "Недостаточно прав")
+        # Проверяем, что текущий пользователь имеет права admin для данной страницы
+        user_roles = get_user_page_roles(current.id)
+        current_role = user_roles.get(page, "viewer")
+        if current_role != "admin":
+            raise HTTPException(403, "Нужны права администратора для управления ролями")
 
     if page not in PAGES:
         raise HTTPException(400, f"Неизвестная страница: {page}")
 
-    if role not in ("viewer", "editor"):
+    if role not in ("viewer", "editor", "author", "admin"):
         raise HTTPException(400, f"Недопустимая роль: {role}")
 
     await ensure_user_exists(db, user_id)
@@ -198,7 +271,11 @@ async def revoke_page_access(
 ):
     """Отозвать доступ пользователя к странице."""
     if not getattr(current, "is_superuser", False):
-        raise HTTPException(403, "Недостаточно прав")
+        # Проверяем права admin
+        user_roles = get_user_page_roles(current.id)
+        current_role = user_roles.get(page, "viewer")
+        if current_role != "admin":
+            raise HTTPException(403, "Нужны права администратора для управления ролями")
 
     if page not in PAGES:
         raise HTTPException(400, f"Неизвестная страница: {page}")
@@ -239,7 +316,21 @@ async def update_user_pages(
 ):
     """Массовое обновление доступа пользователя к страницам с ролями."""
     if not getattr(current, "is_superuser", False):
-        raise HTTPException(403, "Недостаточно прав")
+        # Проверяем права admin для всех затрагиваемых страниц
+        user_roles = get_user_page_roles(current.id)
+        all_pages = set()
+        
+        if payload.pages_grant:
+            all_pages.update(payload.pages_grant)
+        if payload.pages_revoke:
+            all_pages.update(payload.pages_revoke)
+        if payload.page_roles:
+            all_pages.update([pr.page for pr in payload.page_roles])
+        
+        for page in all_pages:
+            current_role = user_roles.get(page, "viewer")
+            if current_role != "admin":
+                raise HTTPException(403, f"Нужны права администратора для управления ролями на странице {page}")
 
     await ensure_user_exists(db, user_id)
 
@@ -285,7 +376,7 @@ async def update_user_pages(
 
         # Обновляем роли для страниц
         if payload.page_roles:
-            user_roles = {}
+            user_roles = get_user_page_roles(user_id)
             for role_data in payload.page_roles:
                 if role_data.page in current_pages:
                     user_roles[role_data.page] = role_data.role
@@ -371,3 +462,59 @@ async def sync_user_pages(
     except Exception as e:
         await db.rollback()
         raise HTTPException(500, f"Ошибка при синхронизации доступа: {str(e)}")
+
+
+# Новые эндпоинты для работы с ролями согласно ТЗ
+
+@router.get("/permissions/{page}")
+async def get_user_permissions(
+    page: str,
+    db: AsyncSession = Depends(get_db),
+    current=Depends(get_current_user)
+):
+    """Получить разрешения текущего пользователя для страницы."""
+    if page not in PAGES:
+        raise HTTPException(400, f"Неизвестная страница: {page}")
+    
+    user_roles = get_user_page_roles(current.id)
+    page_role = user_roles.get(page, "viewer")
+    
+    return {
+        "role": page_role,
+        "permissions": {
+            "view": check_role_permissions(page_role, "view"),
+            "create": check_role_permissions(page_role, "create"), 
+            "edit": check_role_permissions(page_role, "edit"),
+            "delete": check_role_permissions(page_role, "delete"),
+            "import": check_role_permissions(page_role, "import"),
+        }
+    }
+
+
+@router.get("/role-info")
+async def get_role_info():
+    """Получить информацию о ролях и их возможностях."""
+    return {
+        "roles": {
+            "admin": {
+                "name": "Администратор", 
+                "description": "Полный доступ ко всем функциям + управление ролями",
+                "permissions": ["view", "create", "edit", "delete", "import", "manage_roles"]
+            },
+            "editor": {
+                "name": "Редактор",
+                "description": "Полный доступ ко всем записям контент-плана", 
+                "permissions": ["view", "create", "edit", "delete", "import"]
+            },
+            "author": {
+                "name": "Автор",
+                "description": "Может создавать новые записи и редактировать только свои",
+                "permissions": ["view", "create", "edit_own"]
+            },
+            "viewer": {
+                "name": "Наблюдатель",
+                "description": "Только просмотр всех записей",
+                "permissions": ["view"]
+            }
+        }
+    }

@@ -374,12 +374,26 @@ export type UserDto = {
     name: string | null;
     is_active: boolean;
     is_superuser: boolean;
+    can_view_all_content?: boolean; // настройка для кп (видимость всех поей или только своих)
 };
+
+
 
 export async function listUsers(): Promise<UserDto[]> {
     const r = await api.get<UserDto[]>("/auth/users");
     return r.data;
 }
+
+export async function listAuthors(): Promise<UserDto[]> {
+    const r = await api.get<UserDto[]>("/auth/users/authors");
+    return r.data;
+}
+
+export const updateUserContentAccess = async (userId: string, canViewAllContent: boolean) => {
+    return api.patch(`/auth/users/${userId}/content-access`, {
+        can_view_all_content: canViewAllContent  // ИСПРАВЛЕНО: передаем объект, а не просто boolean
+    });
+};
 
 export const getAnalytics = async (projectId?: string) => {
     const params = projectId ? { project_id: projectId } : {};
