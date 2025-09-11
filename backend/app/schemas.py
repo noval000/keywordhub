@@ -5,6 +5,7 @@ import datetime as dt
 from typing import Optional, Any, Dict, List
 from pydantic import BaseModel, Field, field_validator
 
+
 # ---------------- Projects ----------------
 
 class ProjectCreate(BaseModel):
@@ -238,6 +239,10 @@ class ContentPlanItemOut(ContentPlanItemBase):
     created_at: dt.datetime
     updated_at: dt.datetime
 
+    # информация о ТЗ
+    has_technical_specification: bool = False
+    technical_specification_id: Optional["uuid.UUID"] = None
+
     class Config:
         from_attributes = True
 
@@ -294,3 +299,79 @@ class PageRoleUpdate(BaseModel):
     page: str
     role: str = Field(pattern="^(viewer|editor)$")
     project_id: Optional[UUID] = None
+
+
+
+
+# ---------------- Technical Specifications (TZ) ----------------
+
+# Схемы для создания ТЗ
+class TechnicalSpecificationBlockCreate(BaseModel):
+    id: Optional[str] = None
+    type: str  # ← Изменено с block_type
+    title: Optional[str] = None
+    description: Optional[List[str]] = None  # ← Изменено с content
+    collapsed: Optional[bool] = False
+
+class TechnicalSpecificationCreate(BaseModel):
+    content_plan_id: "uuid.UUID"
+    title: str
+    author: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    lsi_phrases: Optional[List[str]] = None
+    competitors: Optional[List[str]] = None
+    count: Optional[int] = None
+    usage_form: Optional[str] = None
+    blocks: List[TechnicalSpecificationBlockCreate]
+
+# Схемы для обновления ТЗ
+class TechnicalSpecificationBlockUpdate(BaseModel):
+    id: Optional[str] = None
+    type: Optional[str] = None  # ← Изменено с block_type
+    title: Optional[str] = None
+    description: Optional[List[str]] = None  # ← Изменено с content
+    collapsed: Optional[bool] = None
+
+class TechnicalSpecificationUpdate(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    lsi_phrases: Optional[List[str]] = None
+    competitors: Optional[List[str]] = None
+    count: Optional[int] = None
+    usage_form: Optional[str] = None
+    blocks: Optional[List[TechnicalSpecificationBlockUpdate]] = None
+
+# Схемы для ответа ТЗ
+class TechnicalSpecificationBlockResponse(BaseModel):
+    id: Optional[str] = None
+    type: str  # ← Изменено с block_type
+    title: Optional[str] = None
+    description: Optional[List[str]] = None  # ← Изменено с content
+    collapsed: Optional[bool] = False
+
+class TechnicalSpecificationResponse(BaseModel):
+    id: "uuid.UUID"
+    content_plan_id: "uuid.UUID"
+    title: str
+    author: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    lsi_phrases: Optional[List[str]] = None
+    competitors: Optional[List[str]] = None
+    count: Optional[int] = None
+    usage_form: Optional[str] = None
+    created_at: "dt.datetime"
+    updated_at: "dt.datetime"
+    blocks: List[TechnicalSpecificationBlockResponse]
+
+    class Config:
+        from_attributes = True
+
+# Схема для списка ТЗ
+class TechnicalSpecificationList(BaseModel):
+    items: List[TechnicalSpecificationResponse]
+    total: int
+    page: int
+    size: int
+    pages: int
+

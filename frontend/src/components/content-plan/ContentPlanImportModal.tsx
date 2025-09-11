@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { cpCreate, type CPItem, type ProjectDto } from "@/lib/api";
+import { cpCreate, type CPItem, type ProjectDto, listUsers, type UserDto } from "@/lib/api";
+import { normalizePeriod } from '@/lib/cp-utils';
 import Papa from "papaparse";
 // @ts-ignore — опционально, если установлен
 import * as XLSX from "xlsx";
@@ -20,6 +21,8 @@ import {
     CheckCircle2,
     Database,
     Eye,
+    User,
+    Hash,
 } from "lucide-react";
 
 type Props = {
@@ -40,23 +43,41 @@ type PreviewRow = {
     author?: string | null;
     review?: string | null;
     meta_seo?: string | null;
-    publish_allowed?: string | null; // ТЕКСТ или null
+    publish_allowed?: string | null;
     comment?: string | null;
     link?: string | null;
-    publish_date?: string | null;   // YYYY-MM-DD
+    publish_date?: string | null;
+};
+
+// Добавим интерфейс для пользователей
+type User = {
+    id: string;
+    name: string;
+    email: string;
 };
 
 function normalizeHeader(s: string) {
     const x = (s || "").toString().trim().toLowerCase();
     const c = x.replace(/\s+/g, " ");
+
+    // Добавляем отладку
+    console.log(`Header mapping: "${s}" -> normalized: "${x}" -> cleaned: "${c}"`);
+
     if (c === "период") return "period";
     if (c === "раздел") return "section";
     if (c === "направление") return "direction";
     if (c === "тема") return "topic";
     if (c === "тз" || c === "тз/бриф" || c === "тз бриф") return "tz";
-    if (c === "символы" || c === "кол-во символов" || c === "количество символов") return "chars";
+
+    // Расширяем варианты для символов
+    if (c === "символы" || c === "кол-во символов" || c === "количество символов" ||
+        c === "chars" || c === "символ" || c === "знаков" || c === "объем") return "chars";
+
     if (c === "статус") return "status";
-    if (c === "автор") return "author";
+
+    // Расширяем варианты для автора
+    if (c === "автор" || c === "author" || c === "исполнитель" || c === "копирайтер") return "author";
+
     if (c === "на проверке у врача" || c === "ссылка у врача" || c === "проверка" || c === "редактор") return "review";
     if (c === "meta seo" || c === "мета seo" || c === "мета") return "meta_seo";
     if (c === "можно размещать" || c === "к публикации") return "publish_allowed";
@@ -70,8 +91,27 @@ function toInt(v: any): number | null {
     if (v === null || v === undefined) return null;
     const s = String(v).trim();
     if (s === "") return null;
-    const n = Number(s.replace(/\s+/g, "").replace(",", "."));
-    return Number.isFinite(n) ? Math.round(n) : null;
+
+    console.log(`Parsing number: "${v}" -> string: "${s}"`);
+
+    // Убираем все пробелы, заменяем запятую на точку, убираем скобки и другие символы
+    let cleaned = s.replace(/\s+/g, "")
+        .replace(/,/g, ".")
+        .replace(/[^\d.-]/g, ""); // оставляем только цифры, точки и минусы
+
+    // Если есть скобки, извлекаем число из них (например "1000 (1250)" -> берем 1250)
+    const bracketMatch = s.match(/\((\d+)\)/);
+    if (bracketMatch) {
+        cleaned = bracketMatch[1];
+    }
+
+    console.log(`Cleaned number: "${cleaned}"`);
+
+    const n = Number(cleaned);
+    const result = Number.isFinite(n) ? Math.round(n) : null;
+
+    console.log(`Final number result: ${result}`);
+    return result;
 }
 
 function toDateISO(v: any): string | null {
@@ -105,13 +145,16 @@ const toNullIfEmpty = (v: any): string | null => {
 };
 
 function mapRawRow(r: RawRow): PreviewRow {
+    console.log('Raw row data:', r);
+
     const obj: Record<string, any> = {};
     for (const [k, v] of Object.entries(r)) {
         const nk = normalizeHeader(k);
         obj[nk] = v;
+        console.log(`Field mapping: "${k}" -> "${nk}" = "${v}"`);
     }
 
-    return {
+    const result = {
         period: toNullIfEmpty(obj["period"]),
         section: toNullIfEmpty(obj["section"]),
         direction: toNullIfEmpty(obj["direction"]),
@@ -122,11 +165,14 @@ function mapRawRow(r: RawRow): PreviewRow {
         author: toNullIfEmpty(obj["author"]),
         review: toNullIfEmpty(obj["review"]),
         meta_seo: toNullIfEmpty(obj["meta_seo"]),
-        publish_allowed: toNullIfEmpty(obj["publish_allowed"]), // <= пустые -> null
+        publish_allowed: toNullIfEmpty(obj["publish_allowed"]),
         comment: toNullIfEmpty(obj["comment"]),
         link: toNullIfEmpty(obj["link"]),
         publish_date: toDateISO(obj["publish_date"]),
     };
+
+    console.log('Mapped row result:', result);
+    return result;
 }
 
 function normalizeUrlOrNull(v: string | null | undefined): string | null {
@@ -136,12 +182,74 @@ function normalizeUrlOrNull(v: string | null | undefined): string | null {
     return `https://${s}`;
 }
 
+function findUserByName(authorName: string, users: UserDto[]): string | null {
+    if (!authorName || !authorName.trim()) {
+        console.log('No author name provided');
+        return null;
+    }
+
+    const cleanName = authorName.trim().toLowerCase();
+    console.log(`Finding user for: "${authorName}" -> cleaned: "${cleanName}"`);
+    console.log('Available users:', users.map(u => ({ id: u.id, name: u.name })));
+
+    // Точное совпадение по имени
+    const exactMatch = users.find(user =>
+        user.name.toLowerCase() === cleanName
+    );
+    if (exactMatch) {
+        console.log(`Exact match found: "${exactMatch.name}" with ID: "${exactMatch.id}"`);
+        return exactMatch.id; // Возвращаем ID, а не имя!
+    }
+
+    // Поиск по частичному совпадению
+    const partialMatch = users.find(user => {
+        const userName = user.name.toLowerCase();
+        return userName.includes(cleanName) || cleanName.includes(userName);
+    });
+    if (partialMatch) {
+        console.log(`Partial match found: "${partialMatch.name}" with ID: "${partialMatch.id}"`);
+        return partialMatch.id; // Возвращаем ID, а не имя!
+    }
+
+    // Поиск по словам (если имя состоит из нескольких слов)
+    const nameWords = cleanName.split(/\s+/);
+    const wordMatch = users.find(user => {
+        const userName = user.name.toLowerCase();
+        return nameWords.some(word => userName.includes(word) || word.includes(userName));
+    });
+    if (wordMatch) {
+        console.log(`Word match found: "${wordMatch.name}" with ID: "${wordMatch.id}"`);
+        return wordMatch.id; // Возвращаем ID, а не имя!
+    }
+
+    console.log(`No user match found for: "${authorName}"`);
+    // Если не найден, возвращаем null (не создаем автора с именем)
+    return null;
+}
+
 export default function ContentPlanImportModal({ projects, onClose, onImported }: Props) {
     const [file, setFile] = useState<File | null>(null);
     const [rows, setRows] = useState<PreviewRow[]>([]);
     const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [users, setUsers] = useState<UserDto[]>([]);
+
+    // Загружаем список пользователей при открытии модала
+    useEffect(() => {
+        const loadUsers = async () => {
+            try {
+                const usersList = await listUsers(); // используем listUsers
+                setUsers(usersList);
+                console.log('Loaded users:', usersList); // для отладки
+            } catch (err) {
+                console.error('Failed to load users:', err);
+                // Не критично, просто не будет проверки авторов
+            }
+        };
+
+        loadUsers();
+    }, []);
 
     const allChecked = useMemo(
         () => selectedProjectIds.length > 0 && selectedProjectIds.length === projects.length,
@@ -213,50 +321,101 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
 
         setLoading(true);
         try {
-            const tasks: Promise<any>[] = [];
-
             for (const pid of selectedProjectIds) {
                 for (const r of rows) {
+                    const normalizedPeriod = r.period ? normalizePeriod(r.period) : null;
+                    const normalizedAuthor = findUserByName(r.author || '', users);
+
+                    console.log('🎯 AUTHOR DEBUG:');
+                    console.log('Original author from file:', r.author);
+                    console.log('Found user ID:', normalizedAuthor);
+                    console.log('Author type:', typeof normalizedAuthor);
+                    console.log('Author is null/undefined?', normalizedAuthor == null);
+
+                    // Проверим что автор действительно существует
+                    const authorExists = users.find(u => u.id === normalizedAuthor);
+                    console.log('Author exists in users list?', !!authorExists);
+                    if (authorExists) {
+                        console.log('Author details:', { id: authorExists.id, name: authorExists.name });
+                    }
+
                     const item: Partial<CPItem> = {
-                        period: r.period ?? null,
+                        period: normalizedPeriod,
                         section: r.section ?? null,
                         direction: r.direction ?? null,
                         topic: r.topic ?? null,
                         tz: normalizeUrlOrNull(r.tz),
                         chars: r.chars ?? null,
                         status: r.status ?? null,
-                        author: r.author ?? null,
+                        author: normalizedAuthor, // ID пользователя
+                        reviewing_doctor: null,
+                        doctor_approved: null,
                         review: normalizeUrlOrNull(r.review),
                         meta_seo: r.meta_seo ?? null,
-                        // ВАЖНО: пустые -> null (никаких "")
-                        publish_allowed: (r.publish_allowed && r.publish_allowed.trim()) ? r.publish_allowed.trim() : null,
                         comment: r.comment ?? null,
                         link: normalizeUrlOrNull(r.link),
                         publish_date: r.publish_date ?? null,
                     };
 
-                    tasks.push(
-                        cpCreate({ project_ids: [pid], item })
-                    );
+                    console.log('📤 Author being sent to server:', item.author);
+                    console.log('📤 Full item:', JSON.stringify(item, null, 2));
+
+                    try {
+                        const result = await cpCreate({ project_ids: [pid], item });
+                        console.log('📥 Response received:', result);
+
+                        // Проверяем каждый созданный элемент
+                        result.forEach((createdItem, index) => {
+                            console.log(`📋 Created item ${index}:`, {
+                                id: createdItem.id,
+                                topic: createdItem.topic,
+                                author: createdItem.author,
+                                period: createdItem.period,
+                            });
+
+                            if (item.author !== createdItem.author) {
+                                console.error('❌ AUTHOR MISMATCH! Sent:', item.author, 'Received:', createdItem.author);
+                            } else {
+                                console.log('✅ Author correct:', createdItem.author);
+                            }
+                        });
+
+                    } catch (error: any) {
+                        console.error('❌ Request failed:', error);
+                        console.error('❌ Error response data:', error.response?.data);
+                        console.error('❌ Error status:', error.response?.status);
+                        console.error('❌ Failed item:', item);
+                        throw error;
+                    }
                 }
             }
 
-            const results = await Promise.allSettled(tasks);
-            const rejected = results.filter(r => r.status === "rejected");
-            if (rejected.length > 0) {
-                setError(`Импорт завершён c ошибками: проблемных строк — ${rejected.length} из ${results.length}.`);
-            }
-
+            console.log('✅ Import completed successfully');
             onImported();
             onClose();
+
         } catch (e: any) {
+            console.error('💥 Import error:', e);
             setError(e?.message || "Ошибка при импорте");
         } finally {
             setLoading(false);
         }
     }
 
-    useEffect(() => {}, [projects]);
+    // Обновленный блок предпросмотра с нормализованными данными
+    const normalizedRows = useMemo(() => {
+        return rows.map(row => {
+            const authorId = findUserByName(row.author || '', users);
+            const authorUser = users.find(u => u.id === authorId);
+
+            return {
+                ...row,
+                period: row.period ? normalizePeriod(row.period) : null,
+                author: authorId,
+                authorName: authorUser?.name || row.author || null, // для отображения в таблице
+            };
+        });
+    }, [rows, users]);
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -282,8 +441,9 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                 <div className="p-6 space-y-6 overflow-auto flex-1">
                     {/* Ошибка */}
                     {error && (
-                        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-                            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                        <div
+                            className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                            <AlertTriangle className="w-5 h-5 flex-shrink-0"/>
                             <span className="text-sm">{error}</span>
                         </div>
                     )}
@@ -291,7 +451,7 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                     {/* Выбор проектов */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <Target className="w-5 h-5 text-blue-600" />
+                            <Target className="w-5 h-5 text-blue-600"/>
                             Куда импортировать
                         </h3>
 
@@ -309,7 +469,7 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                                             ? 'bg-green-600 border-green-600'
                                             : 'border-gray-300 hover:border-gray-400'
                                     }`}>
-                                        {allChecked && <CheckSquare className="w-5 h-5 text-white" />}
+                                        {allChecked && <CheckSquare className="w-5 h-5 text-white"/>}
                                     </div>
                                 </div>
                                 <span className="font-medium text-gray-900">Выбрать все проекты</span>
@@ -333,7 +493,8 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                                                     ? 'bg-green-600 border-green-600'
                                                     : 'border-gray-300'
                                             }`}>
-                                                {selectedProjectIds.includes(p.id) && <CheckSquare className="w-4 h-4 text-white" />}
+                                                {selectedProjectIds.includes(p.id) &&
+                                                    <CheckSquare className="w-4 h-4 text-white"/>}
                                             </div>
                                         </div>
                                         <span className="text-sm text-gray-900 truncate">{p.name}</span>
@@ -346,15 +507,17 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                     {/* Выбор файла */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <FileSpreadsheet className="w-5 h-5 text-purple-600" />
+                            <FileSpreadsheet className="w-5 h-5 text-purple-600"/>
                             Выбор файла
                         </h3>
 
                         <div className="space-y-4">
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-gray-400 transition-colors">
+                            <div
+                                className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-gray-400 transition-colors">
                                 <div className="text-center">
-                                    <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl inline-block mb-3">
-                                        <FileSpreadsheet className="w-8 h-8 text-purple-600" />
+                                    <div
+                                        className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl inline-block mb-3">
+                                        <FileSpreadsheet className="w-8 h-8 text-purple-600"/>
                                     </div>
                                     <div className="space-y-2">
                                         <input
@@ -374,85 +537,94 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
 
                             {file && (
                                 <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
-                                    <FileText className="w-5 h-5 text-purple-600" />
+                                    <FileText className="w-5 h-5 text-purple-600"/>
                                     <span className="text-sm font-medium text-purple-900">{file.name}</span>
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto" />
+                                    <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto"/>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Предпросмотр данных */}
-                    {rows.length > 0 && (
-                        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg">
-                            <div className="p-6 border-b border-gray-100">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                        <Eye className="w-5 h-5 text-indigo-600" />
-                                        Предпросмотр данных
-                                    </h3>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <Database className="w-4 h-4" />
-                                        <span className="font-medium">{rows.length} строк</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="overflow-auto max-h-80">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-50 sticky top-0">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-blue-600" />
-                                            Тема
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-green-600" />
-                                            Период
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
-                                            <Tag className="w-4 h-4 text-purple-600" />
-                                            Раздел
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
-                                            <Settings className="w-4 h-4 text-orange-600" />
-                                            Статус
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-700 border-b">
-                                            Можно размещать
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {rows.slice(0, 200).map((r, i) => (
-                                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-4 py-3 border-b text-gray-900">{r.topic ?? "—"}</td>
-                                            <td className="px-4 py-3 border-b text-gray-700">{r.period ?? "—"}</td>
-                                            <td className="px-4 py-3 border-b text-gray-700">{r.section ?? "—"}</td>
-                                            <td className="px-4 py-3 border-b">
-                                                {r.status ? (
-                                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium">
-                                                            {r.status}
-                                                        </span>
-                                                ) : (
-                                                    <span className="text-gray-400">—</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3 border-b text-gray-700">{r.publish_allowed ?? "—"}</td>
-                                        </tr>
-                                    ))}
-                                    {rows.length > 200 && (
-                                        <tr>
-                                            <td className="px-4 py-4 text-gray-500 italic text-center" colSpan={5}>
-                                                Показаны первые 200 строк из {rows.length}
-                                            </td>
-                                        </tr>
-                                    )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
+                    {/* Предпросмотр данных с нормализованными значениями */}
+                    <div className="overflow-auto max-h-80">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-blue-600"/>
+                                    Тема
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-green-600"/>
+                                    Период
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <Tag className="w-4 h-4 text-purple-600"/>
+                                    Раздел
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <User className="w-4 h-4 text-blue-600"/>
+                                    Автор
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <Hash className="w-4 h-4 text-red-600"/>
+                                    Символы
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 border-b flex items-center gap-2">
+                                    <Settings className="w-4 h-4 text-orange-600"/>
+                                    Статус
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {normalizedRows.slice(0, 200).map((r, i) => (
+                                <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="px-4 py-3 border-b text-gray-900">{r.topic ?? "—"}</td>
+                                    <td className="px-4 py-3 border-b">
+                                        <div className="flex flex-col">
+                                            <span className="text-gray-900">{r.period ?? "—"}</span>
+                                            {rows[i]?.period !== r.period && rows[i]?.period && (
+                                                <span className="text-xs text-gray-500">было: {rows[i].period}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 border-b text-gray-700">{r.section ?? "—"}</td>
+                                    <td className="px-4 py-3 border-b">
+                                        <div className="flex flex-col">
+                                        <span className="text-gray-900">
+                                            {(r as any).authorName ?? r.author ?? "—"}
+                                        </span>
+                                            {rows[i]?.author !== (r as any).authorName && rows[i]?.author && (
+                                                <span className="text-xs text-gray-500">было: {rows[i].author}</span>
+                                            )}
+                                            {r.author && (
+                                                <span className="text-xs text-green-600">ID: {r.author}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 border-b">
+                                        <div className="flex flex-col">
+                                            <span className="text-gray-900">{r.chars ?? "—"}</span>
+                                            {rows[i]?.chars !== r.chars && rows[i]?.chars && (
+                                                <span className="text-xs text-gray-500">было: {rows[i].chars}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 border-b">
+                                        {r.status ? (
+                                            <span
+                                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium">
+                            {r.status}
+                        </span>
+                                        ) : (
+                                            <span className="text-gray-400">—</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* Футер */}
@@ -469,7 +641,7 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                         disabled={!rows.length || !selectedProjectIds.length || loading}
                         onClick={handleImport}
                     >
-                        <Upload className="w-4 h-4" />
+                        <Upload className="w-4 h-4"/>
                         {loading ? "Импорт..." : "Импортировать"}
                     </button>
                 </div>

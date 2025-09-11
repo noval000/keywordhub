@@ -1,6 +1,7 @@
 // src/lib/api.ts
 import axios from "axios";
 import { useAuthStore } from "@/store/auth";
+import type { TZData, TZCreateRequest, TZUpdateRequest } from '@/types/tz';
 
 /** ---------- Base axios with auth (как раньше) ---------- */
 export const api = axios.create({
@@ -249,6 +250,8 @@ export type CPItem = {
     created_at?: string;
     updated_at?: string;
     version?: number;
+    has_technical_specification: boolean;
+    technical_specification_id?: string | null;
 };
 
 export async function cpList(opts: {
@@ -405,3 +408,31 @@ export const getAnalytics = async (projectId?: string) => {
     const params = projectId ? { project_id: projectId } : {};
     return api.get('/analytics/report', { params });
 };
+
+
+// TZ API functions
+export async function tzCreate(data: TZCreateRequest): Promise<TZData> {
+    const r = await api.post<TZData>("/tz", data);
+    return r.data;
+}
+
+export async function tzGet(contentPlanId: string): Promise<TZData | null> {
+    try {
+        const r = await api.get<TZData>(`/tz/content-plan/${contentPlanId}`);
+        return r.data;
+    } catch (e: any) {
+        if (e.response?.status === 404) return null;
+        throw e;
+    }
+}
+
+export async function tzUpdate(id: string, data: TZUpdateRequest): Promise<TZData> {
+    const r = await api.put<TZData>(`/tz/${id}`, data); // ← Заменить patch на put
+    return r.data;
+}
+
+export async function tzDelete(id: string): Promise<void> {
+    await api.delete(`/tz/${id}`);
+}
+
+
