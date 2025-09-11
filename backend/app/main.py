@@ -15,7 +15,8 @@ from .routers import (
     project_members,
     access,
     analytics,
-    doctor_parser
+    doctor_parser,
+    tz
 )
 
 # Настройка логирования
@@ -128,7 +129,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключение роутеров с префиксами
+# Подключение роутеров
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(dictionaries.router)
@@ -139,6 +140,7 @@ app.include_router(project_members.router)
 app.include_router(access.router)
 app.include_router(analytics.router)
 app.include_router(doctor_parser.router)
+app.include_router(tz.router)
 
 @app.get("/")
 async def root():

@@ -7,3 +7,26 @@
 @import "ag-grid-community/styles/ag-theme-quartz.css";
 
 html, body, :root { height: 100%; }
+
+/* Для textarea с автоматической высотой */
+.auto-resize {
+    field-sizing: content;
+    min-height: 2.5rem;
+    max-height: 8rem;
+}
+
+/* Анимации для блоков */
+.block-enter {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

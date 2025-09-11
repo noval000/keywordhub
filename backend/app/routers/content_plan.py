@@ -9,7 +9,7 @@ from sqlalchemy import select, func, or_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..deps import get_current_user, get_db, require_project_role
-from ..models import ContentPlanItem, User
+from ..models import ContentPlanItem, User, TechnicalSpecification
 from .. import schemas as S
 from ..routers.access import require_page_access
 
@@ -277,7 +277,31 @@ async def list_content_plan(
 
     logger.info(f"  Found {len(rows)} records after filtering")
 
-    return rows
+    # ← ДОБАВИТЬ ЭТОТ БЛОК: Получаем информацию о ТЗ
+    item_ids = [row.id for row in rows]
+
+    # Получаем все ТЗ для найденных элементов
+    tz_result = await db.execute(
+        select(TechnicalSpecification.content_plan_id, TechnicalSpecification.id)
+        .where(TechnicalSpecification.content_plan_id.in_(item_ids))
+    )
+    tz_map = {content_plan_id: tz_id for content_plan_id, tz_id in tz_result.fetchall()}
+
+    # Преобразуем в response схему с информацией о ТЗ
+    response_items = []
+    for row in rows:
+        # Получаем все атрибуты объекта как словарь
+        item_dict = {}
+        for column in ContentPlanItem.__table__.columns:
+            item_dict[column.name] = getattr(row, column.name)
+
+        # Добавляем информацию о ТЗ
+        item_dict["has_technical_specification"] = row.id in tz_map
+        item_dict["technical_specification_id"] = tz_map.get(row.id)
+
+        response_items.append(S.ContentPlanItemOut(**item_dict))
+
+    return response_items
 
 
 # -----------------------
@@ -358,11 +382,25 @@ async def create_content_plan_item(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"🔍 CREATE REQUEST:")
+    logger.info(f"  Current user: {user.id} ({user.email})")
+    logger.info(f"  Requested author: {getattr(data.item, 'author', 'None')}")
+
     if not data.project_ids:
         raise HTTPException(422, "project_ids is required")
 
     # Проверка прав на создание
     await check_content_plan_create_access(db, user)
+
+    # Получаем роль пользователя для проверки прав на назначение автора
+    from .access import get_user_page_roles
+    user_roles = get_user_page_roles(user.id)
+    page_role = user_roles.get("content_plan", "viewer")
+
+    logger.info(f"  User page role: {page_role}")
 
     created_rows: List[ContentPlanItem] = []
     for pid in data.project_ids:
@@ -379,8 +417,31 @@ async def create_content_plan_item(
         payload = it.model_dump(exclude_unset=True)
         _apply_str_fields(row, payload)
 
-        # При создании записи автор всегда = текущий пользователь
-        row.author = str(user.id)
+        # ИСПРАВЛЕННАЯ ЛОГИКА НАЗНАЧЕНИЯ АВТОРА
+        requested_author = payload.get("author")
+
+        if requested_author and user.is_superuser:
+            # Суперпользователь может назначать любого автора
+            row.author = requested_author
+            logger.info(f"✅ Superuser назначил автора: {requested_author}")
+
+        elif requested_author and page_role in ("admin", "editor"):
+            # Admin и Editor могут назначать любого автора
+            row.author = requested_author
+            logger.info(f"✅ {page_role} назначил автора: {requested_author}")
+
+        elif requested_author and page_role == "author" and requested_author == str(user.id):
+            # Author может назначить только себя
+            row.author = requested_author
+            logger.info(f"✅ Author назначил себя: {requested_author}")
+
+        else:
+            # По умолчанию назначаем текущего пользователя
+            row.author = str(user.id)
+            if requested_author:
+                logger.warning(f"⚠️ Запрос на назначение автора {requested_author} отклонен. Назначен текущий пользователь: {user.id}")
+            else:
+                logger.info(f"✅ Назначен текущий пользователь как автор: {user.id}")
 
         if "doctor_review" in payload:
             row.doctor_review = payload.get("doctor_review")
@@ -391,6 +452,8 @@ async def create_content_plan_item(
     await db.commit()
     for r in created_rows:
         await db.refresh(r)
+
+    logger.info(f"✅ Successfully created {len(created_rows)} content plan items")
     return created_rows
 
 

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AgGridReact } from "ag-grid-react";
+
 import type { AgGridReact as AgGridReactType } from "ag-grid-react";
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import {
@@ -32,6 +33,7 @@ import {
     CheckCircle,
     AlertTriangle,
     TrendingUp,
+    ExternalLink,
 } from "lucide-react";
 
 import {
@@ -47,11 +49,15 @@ import ContentPlanImportModal from "@/components/content-plan/ContentPlanImportM
 import ContentPlanAddModal from "@/components/content-plan/ContentPlanAddModal";
 import ContentPlanEditModal from "@/components/content-plan/ContentPlanEditModal";
 import ContentPlanProjectsModal from "@/components/content-plan/ContentPlanProjectsModal";
+
 import {
     normalizeUrl,
     formatPeriodRuFromMonthInput,
 } from "@/lib/cp-utils";
 import UserSelect from "@/components/ui/UserSelect";
+import TZCreateModal from "@/components/tz/TZCreateModal";
+import {TZButton} from "@/components/tz/TZButton";
+import TZViewModal from "@/components/tz/TZViewModal";
 
 /* ---------- constants ---------- */
 
@@ -100,6 +106,8 @@ function ActionsRenderer(p: ICellRendererParams<Grouped, any>) {
     const g = p.data!;
     const openEdit = p.context?.openEdit as (g: Grouped) => void;
     const openProjects = p.context?.openProjects as (g: Grouped) => void;
+
+
 
     return (
         <div className="h-full w-full flex items-center justify-center gap-2">
@@ -180,6 +188,18 @@ export default function ContentPlanPage() {
     const [showAdd, setShowAdd] = useState(false);
     const [editGroup, setEditGroup] = useState<Grouped | null>(null);
     const [projectsGroup, setProjectsGroup] = useState<Grouped | null>(null);
+
+    const [showTZModal, setShowTZModal] = useState(false);
+    const [selectedContentPlanItem, setSelectedContentPlanItem] = useState<CPItem | null>(null);
+    const [editingTZId, setEditingTZId] = useState<string | null>(null);
+    const [tzMode, setTZMode] = useState<'create' | 'edit'>('create');
+    const [selectedItem, setSelectedItem] = useState<CPItem | null>(null);
+    const [showTZViewModal, setShowTZViewModal] = useState(false);
+
+
+
+
+
 
     const [selectionKeys, setSelectionKeys] = useState<string[]>([]);
     const gridRef = useRef<AgGridReactType<Grouped>>(null);
@@ -395,10 +415,73 @@ export default function ContentPlanPage() {
             },
             {
                 headerName: "ТЗ",
-                width: 110,
-                cellRenderer: (p: ICellRendererParams<Grouped>) => (
-                    <LinkBtn url={p.data?.sample.tz} label="ТЗ" icon="tz" />
-                ),
+                field: "tz",
+                width: 180,
+                cellRenderer: (params: any) => {
+                    if (!params.data) {
+                        return null;
+                    }
+
+                    const groupedItem = params.data; // это Grouped объект
+                    const item = groupedItem.sample; // получаем CPItem из sample
+                    const tz = item.tz;
+
+                    // Логика 1: Если заполнена внешняя ссылка на ТЗ - показываем её (приоритет)
+                    if (tz && typeof tz === 'string' && tz.trim() !== '') {
+                        return (
+                            <a
+                                href={normalizeUrl(tz)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors"
+                                title="Открыть внешнее ТЗ"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <ExternalLink size={14} />
+                                ТЗ
+                            </a>
+                        );
+                    }
+
+                    // Логика 2: Если есть ТЗ в приложении - показываем кнопку просмотра
+                    if (item.has_technical_specification && item.technical_specification_id) {
+                        return (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('Opening TZ for item:', item);
+                                    setSelectedItem(item); // передаем CPItem, а не Grouped
+                                    setShowTZViewModal(true);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs transition-colors"
+                                title="Открыть техническое задание"
+                            >
+                                <Eye size={14} />
+                                Открыть ТЗ
+                            </button>
+                        );
+                    }
+
+                    // Логика 3: Если ничего нет - показываем кнопку создания
+                    return (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Creating TZ for item:', item);
+                                setSelectedContentPlanItem(item); // передаем CPItem
+                                setTZMode('create');
+                                setShowTZModal(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs transition-colors"
+                            title="Создать техническое задание"
+                        >
+                            <Plus size={14} />
+                            Создать ТЗ
+                        </button>
+                    );
+                }
             },
             {
                 headerName: "Дата размещения",
@@ -729,7 +812,7 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={resetFilters}
-                                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-white/80 rounded-xl transition-all duration-200 border border-gray-200/50"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <RotateCcw className="w-4 h-4" />
                                     Сбросить
@@ -866,6 +949,52 @@ export default function ContentPlanPage() {
                 }
                 projects={projectsQ.data || []}
             />
+
+            {/* Модалка ТЗ создание */}
+            {showTZModal && (
+                <TZCreateModal
+                    open={showTZModal}
+                    mode={tzMode}
+                    contentPlanItem={tzMode === 'create' ? selectedContentPlanItem : undefined}
+                    tzId={tzMode === 'edit' ? editingTZId : undefined}
+                    onClose={() => {
+                        setShowTZModal(false);
+                        setSelectedContentPlanItem(null);
+                        setEditingTZId(null);
+                        qc.invalidateQueries({ queryKey: ["cp_flat"] });
+                        qc.invalidateQueries({ queryKey: ["cp_count"] });
+                        setTick((t) => t + 1);
+                    }}
+                    onSaved={() => {
+                        setShowTZModal(false);
+                        setSelectedContentPlanItem(null);
+                        setEditingTZId(null);
+                        qc.invalidateQueries({ queryKey: ["cp_flat"] });
+                        qc.invalidateQueries({ queryKey: ["cp_count"] });
+                        setTick((t) => t + 1);
+                    }}
+                />
+            )}
+
+            {/* Модалка просмотра ТЗ */}
+            {showTZViewModal && selectedItem && selectedItem.technical_specification_id && (
+                <TZViewModal
+                    open={showTZViewModal}
+                    tzId={selectedItem.technical_specification_id}
+                    onClose={() => {
+                        setShowTZViewModal(false);
+                        setSelectedItem(null);
+                    }}
+                    onEdit={() => {
+                        setShowTZViewModal(false);
+                        setEditingTZId(selectedItem.technical_specification_id || null);
+                        setSelectedContentPlanItem(selectedItem);
+                        setTZMode('edit');
+                        setShowTZModal(true);
+                        setSelectedItem(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

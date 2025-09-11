@@ -211,6 +211,12 @@ class ContentPlanItem(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    technical_specification = relationship(
+        "TechnicalSpecification",
+        back_populates="content_plan_item",
+        uselist=False  # Один к одному
+    )
+
 
 class PageAccess(Base):
     __tablename__ = "page_access"
@@ -279,4 +285,41 @@ class DoctorProfile(Base):
     __table_args__ = (
         Index('ix_doctor_profiles_task_id_parsing_date', 'task_id', 'parsing_date'),
         Index('ix_doctor_profiles_name_specialization', 'name', 'specialization'),
+    )
+
+
+class TechnicalSpecification(Base):
+    __tablename__ = "technical_specifications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    content_plan_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("content_plan_items.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True  # Одно ТЗ на одну запись КП
+    )
+
+    title = Column(String(500), nullable=False)
+    author = Column(String(255))
+
+    # JSON поля для гибкости
+    blocks = Column(JSON, nullable=False, default=list)  # Массив блоков
+    keywords = Column(JSON, nullable=False, default=list)  # Ключевые фразы
+    lsi_phrases = Column(JSON, nullable=False, default=list)  # LSI фразы
+    competitors = Column(JSON, nullable=False, default=list)  # Конкуренты
+
+    # Простые поля
+    count = Column(Integer)  # Количество символов
+    usage_form = Column(Text)  # В какой форме использовать
+
+    # Системные поля
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    updated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Добавить relationship
+    content_plan_item = relationship(
+        "ContentPlanItem",
+        back_populates="technical_specification"
     )

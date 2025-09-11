@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { cpUpdate, CPItem, listClusterRegistry } from "@/lib/api";
+import { cpUpdate, CPItem, listClusterRegistry, tzDelete } from "@/lib/api";
 import Select from "@/components/ui/Select";
 import MetaSeoEditor from "@/components/content-plan/MetaSeoEditor";
 import { SECTION_OPTIONS, STATUS_OPTIONS } from "@/lib/cp-constants";
+import TZCreateModal from "@/components/tz/TZCreateModal";
 import {
     formatPeriodRuFromMonthInput,
     toMonthInputFromPeriod,
@@ -31,9 +32,12 @@ import {
     Target,
     Tag,
     AlertTriangle, Info,
+    Plus,
+    Trash2, Eye
 } from "lucide-react";
 import DirectionSearchSelect from "@/components/content-plan/DirectionSearchSelect";
 import UserSelect from "@/components/ui/UserSelect";
+import TZViewModal from "@/components/tz/TZViewModal";
 
 type Props = {
     open: boolean;
@@ -66,12 +70,27 @@ export default function ContentPlanEditModal({
     const [monthUI, setMonthUI] = useState<string>("");
     const [charsDisplay, setCharsDisplay] = useState<string>("");
 
+    // состояние для подтверждения удаления
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deletingTZ, setDeletingTZ] = useState(false);
+
+    //  открытие модалки просмотр тз
+    const [showTZViewModal, setShowTZViewModal] = useState(false);
+
+    const [showTZModal, setShowTZModal] = useState(false);
+    const [tzMode, setTZMode] = useState<'create' | 'edit'>('create');
+    const [editingTZId, setEditingTZId] = useState<string | null>(null);
+
     const projectIds = useMemo(() => Object.keys(pp), [pp]);
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
     const allChecked = useMemo(
         () => projectIds.length > 0 && projectIds.every((id) => selectedProjects.includes(id)),
         [projectIds, selectedProjects]
     );
+
+    const hasTechnicalSpecification = useMemo(() => {
+        return !!(item?.has_technical_specification && item?.technical_specification_id);
+    }, [item]);
 
     // Получаем направления при открытии модала или изменении выбранных проектов
     useEffect(() => {
@@ -149,6 +168,27 @@ export default function ContentPlanEditModal({
             directions.map(dir => ({ label: dir, value: dir })),
         [directions]
     );
+
+    //  функция удаления ТЗ
+    const handleDeleteTZ = async () => {
+        if (!item?.technical_specification_id) return;
+
+        setDeletingTZ(true);
+        try {
+            await tzDelete(item.technical_specification_id);
+            setShowDeleteConfirm(false);
+            // Можно показать уведомление об успешном удалении
+            alert('ТЗ успешно удалено');
+            // Обновить данные или закрыть модалку
+            onSaved(); // Это обновит данные в родительском компоненте
+        } catch (error) {
+            console.error('Error deleting TZ:', error);
+            alert('Ошибка при удалении ТЗ');
+        } finally {
+            setDeletingTZ(false);
+        }
+    };
+
 
     useEffect(() => {
         if (!open || !item) return;
@@ -449,6 +489,12 @@ export default function ContentPlanEditModal({
                                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                     <FileText className="w-4 h-4 text-blue-600" />
                                     Ссылка на ТЗ
+                                    {hasTechnicalSpecification && (
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                <CheckSquare className="w-3 h-3 mr-1" />
+                ТЗ создано
+            </span>
+                                    )}
                                 </label>
                                 <div className="flex gap-2">
                                     <input
@@ -465,9 +511,61 @@ export default function ContentPlanEditModal({
                                             rel="noreferrer"
                                             className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                                         >
-                                            <ExternalLink className="w-4 h-4" />
+                                            <ExternalLink className="w-4 h-4"/>
                                             Открыть
                                         </a>
+                                    )}
+
+                                    {/* Кнопки управления ТЗ */}
+                                    {hasTechnicalSpecification ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowTZViewModal(true)}
+                                                className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                                                title="Просмотреть техническое задание"
+                                            >
+                                                <Eye className="w-4 h-4"/>
+                                                Открыть ТЗ
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingTZId(item?.technical_specification_id || null);
+                                                    setTZMode('edit');
+                                                    setShowTZModal(true);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                                title="Редактировать техническое задание"
+                                            >
+                                                <FileText className="w-4 h-4"/>
+                                                Редактировать
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowDeleteConfirm(true)}
+                                                className="flex items-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+                                                title="Удалить техническое задание"
+                                                disabled={deletingTZ}
+                                            >
+                                                <Trash2 className="w-4 h-4"/>
+                                                {deletingTZ ? 'Удаление...' : 'Удалить'}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingTZId(null);
+                                                setTZMode('create');
+                                                setShowTZModal(true);
+                                            }}
+                                            className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                                            title="Создать техническое задание"
+                                        >
+                                            <Plus className="w-4 h-4"/>
+                                            Создать ТЗ
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -475,7 +573,7 @@ export default function ContentPlanEditModal({
                             {/* Текст на проверке */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Stethoscope className="w-4 h-4 text-green-600" />
+                                    <Stethoscope className="w-4 h-4 text-green-600"/>
                                     Текст на проверке у врача
                                 </label>
                                 <div className="flex gap-2">
@@ -622,6 +720,77 @@ export default function ContentPlanEditModal({
                     </button>
                 </div>
             </div>
+            {showTZModal && (
+                <TZCreateModal
+                    open={showTZModal}
+                    mode={tzMode} // ← Добавить режим
+                    contentPlanItem={tzMode === 'create' ? item : undefined} // ← Передавать только при создании
+                    tzId={tzMode === 'edit' ? editingTZId : undefined} // ← Передавать ID при редактировании
+                    onClose={() => {
+                        setShowTZModal(false);
+                        setEditingTZId(null);
+                        // Можно добавить обновление данных если нужно
+                    }}
+                    onSaved={() => {
+                        setShowTZModal(false);
+                        setEditingTZId(null);
+                        // Здесь можно добавить логику обновления ссылки на ТЗ
+                        // или обновить состояние родительского компонента
+                    }}
+                />
+            )}
+
+            {/* Модалка подтверждения удаления ТЗ */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 rounded-xl bg-red-100">
+                                <AlertTriangle className="w-5 h-5 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Удалить техническое задание?
+                            </h3>
+                        </div>
+
+                        <p className="text-gray-600 mb-6">
+                            Это действие нельзя отменить. Техническое задание будет удалено навсегда.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                disabled={deletingTZ}
+                                className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                            >
+                                Отмена
+                            </button>
+                            <button
+                                onClick={handleDeleteTZ}
+                                disabled={deletingTZ}
+                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {deletingTZ ? 'Удаление...' : 'Удалить'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/*Модалка просмотр ТЗ*/}
+            {showTZViewModal && item?.technical_specification_id && (
+                <TZViewModal
+                    open={showTZViewModal}
+                    tzId={item.technical_specification_id}
+                    onClose={() => setShowTZViewModal(false)}
+                    onEdit={() => {
+                        setShowTZViewModal(false);
+                        setEditingTZId(item?.technical_specification_id || null);
+                        setTZMode('edit');
+                        setShowTZModal(true);
+                    }}
+                />
+            )}
         </div>
     );
 }
