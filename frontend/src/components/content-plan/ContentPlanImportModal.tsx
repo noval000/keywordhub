@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { cpCreate, type CPItem, type ProjectDto, listUsers, type UserDto } from "@/lib/api";
+import {cpCreate, type CPItem, type ProjectDto, listUsers, type UserDto, cpImport} from "@/lib/api";
 import { normalizePeriod } from '@/lib/cp-utils';
 import Papa from "papaparse";
 // @ts-ignore — опционально, если установлен
@@ -60,8 +60,7 @@ function normalizeHeader(s: string) {
     const x = (s || "").toString().trim().toLowerCase();
     const c = x.replace(/\s+/g, " ");
 
-    // Добавляем отладку
-    console.log(`Header mapping: "${s}" -> normalized: "${x}" -> cleaned: "${c}"`);
+
 
     if (c === "период") return "period";
     if (c === "раздел") return "section";
@@ -92,7 +91,7 @@ function toInt(v: any): number | null {
     const s = String(v).trim();
     if (s === "") return null;
 
-    console.log(`Parsing number: "${v}" -> string: "${s}"`);
+
 
     // Убираем все пробелы, заменяем запятую на точку, убираем скобки и другие символы
     let cleaned = s.replace(/\s+/g, "")
@@ -105,12 +104,10 @@ function toInt(v: any): number | null {
         cleaned = bracketMatch[1];
     }
 
-    console.log(`Cleaned number: "${cleaned}"`);
 
     const n = Number(cleaned);
     const result = Number.isFinite(n) ? Math.round(n) : null;
 
-    console.log(`Final number result: ${result}`);
     return result;
 }
 
@@ -145,13 +142,12 @@ const toNullIfEmpty = (v: any): string | null => {
 };
 
 function mapRawRow(r: RawRow): PreviewRow {
-    console.log('Raw row data:', r);
+
 
     const obj: Record<string, any> = {};
     for (const [k, v] of Object.entries(r)) {
         const nk = normalizeHeader(k);
         obj[nk] = v;
-        console.log(`Field mapping: "${k}" -> "${nk}" = "${v}"`);
     }
 
     const result = {
@@ -171,7 +167,7 @@ function mapRawRow(r: RawRow): PreviewRow {
         publish_date: toDateISO(obj["publish_date"]),
     };
 
-    console.log('Mapped row result:', result);
+
     return result;
 }
 
@@ -184,20 +180,17 @@ function normalizeUrlOrNull(v: string | null | undefined): string | null {
 
 function findUserByName(authorName: string, users: UserDto[]): string | null {
     if (!authorName || !authorName.trim()) {
-        console.log('No author name provided');
+
         return null;
     }
 
     const cleanName = authorName.trim().toLowerCase();
-    console.log(`Finding user for: "${authorName}" -> cleaned: "${cleanName}"`);
-    console.log('Available users:', users.map(u => ({ id: u.id, name: u.name })));
 
     // Точное совпадение по имени
     const exactMatch = users.find(user =>
         user.name.toLowerCase() === cleanName
     );
     if (exactMatch) {
-        console.log(`Exact match found: "${exactMatch.name}" with ID: "${exactMatch.id}"`);
         return exactMatch.id; // Возвращаем ID, а не имя!
     }
 
@@ -207,7 +200,7 @@ function findUserByName(authorName: string, users: UserDto[]): string | null {
         return userName.includes(cleanName) || cleanName.includes(userName);
     });
     if (partialMatch) {
-        console.log(`Partial match found: "${partialMatch.name}" with ID: "${partialMatch.id}"`);
+
         return partialMatch.id; // Возвращаем ID, а не имя!
     }
 
@@ -218,11 +211,8 @@ function findUserByName(authorName: string, users: UserDto[]): string | null {
         return nameWords.some(word => userName.includes(word) || word.includes(userName));
     });
     if (wordMatch) {
-        console.log(`Word match found: "${wordMatch.name}" with ID: "${wordMatch.id}"`);
         return wordMatch.id; // Возвращаем ID, а не имя!
     }
-
-    console.log(`No user match found for: "${authorName}"`);
     // Если не найден, возвращаем null (не создаем автора с именем)
     return null;
 }
@@ -241,7 +231,6 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
             try {
                 const usersList = await listUsers(); // используем listUsers
                 setUsers(usersList);
-                console.log('Loaded users:', usersList); // для отладки
             } catch (err) {
                 console.error('Failed to load users:', err);
                 // Не критично, просто не будет проверки авторов
@@ -320,83 +309,92 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
         }
 
         setLoading(true);
+        let successCount = 0;
+        let errorCount = 0;
+        const errors: string[] = [];
+
         try {
             for (const pid of selectedProjectIds) {
                 for (const r of rows) {
-                    const normalizedPeriod = r.period ? normalizePeriod(r.period) : null;
-                    const normalizedAuthor = findUserByName(r.author || '', users);
-
-                    console.log('🎯 AUTHOR DEBUG:');
-                    console.log('Original author from file:', r.author);
-                    console.log('Found user ID:', normalizedAuthor);
-                    console.log('Author type:', typeof normalizedAuthor);
-                    console.log('Author is null/undefined?', normalizedAuthor == null);
-
-                    // Проверим что автор действительно существует
-                    const authorExists = users.find(u => u.id === normalizedAuthor);
-                    console.log('Author exists in users list?', !!authorExists);
-                    if (authorExists) {
-                        console.log('Author details:', { id: authorExists.id, name: authorExists.name });
-                    }
-
-                    const item: Partial<CPItem> = {
-                        period: normalizedPeriod,
-                        section: r.section ?? null,
-                        direction: r.direction ?? null,
-                        topic: r.topic ?? null,
-                        tz: normalizeUrlOrNull(r.tz),
-                        chars: r.chars ?? null,
-                        status: r.status ?? null,
-                        author: normalizedAuthor, // ID пользователя
-                        reviewing_doctor: null,
-                        doctor_approved: null,
-                        review: normalizeUrlOrNull(r.review),
-                        meta_seo: r.meta_seo ?? null,
-                        comment: r.comment ?? null,
-                        link: normalizeUrlOrNull(r.link),
-                        publish_date: r.publish_date ?? null,
-                    };
-
-                    console.log('📤 Author being sent to server:', item.author);
-                    console.log('📤 Full item:', JSON.stringify(item, null, 2));
-
                     try {
-                        const result = await cpCreate({ project_ids: [pid], item });
-                        console.log('📥 Response received:', result);
+                        const normalizedPeriod = r.period ? normalizePeriod(r.period) : null;
+                        const normalizedAuthor = findUserByName(r.author || '', users);
 
-                        // Проверяем каждый созданный элемент
-                        result.forEach((createdItem, index) => {
-                            console.log(`📋 Created item ${index}:`, {
-                                id: createdItem.id,
-                                topic: createdItem.topic,
-                                author: createdItem.author,
-                                period: createdItem.period,
-                            });
+                        const item: Partial<CPItem> = {
+                            period: normalizedPeriod,
+                            section: r.section ?? null,
+                            direction: r.direction ?? null,
+                            topic: r.topic ?? null,
+                            tz: normalizeUrlOrNull(r.tz),
+                            chars: r.chars ?? null,
+                            status: r.status ?? null,
+                            author: normalizedAuthor,
+                            reviewing_doctor: null,
+                            doctor_approved: null,
+                            review: normalizeUrlOrNull(r.review),
+                            meta_seo: r.meta_seo ?? null,
+                            comment: r.comment ?? null,
+                            link: normalizeUrlOrNull(r.link),
+                            publish_date: r.publish_date ?? null,
+                        };
 
-                            if (item.author !== createdItem.author) {
-                                console.error('❌ AUTHOR MISMATCH! Sent:', item.author, 'Received:', createdItem.author);
-                            } else {
-                                console.log('✅ Author correct:', createdItem.author);
+                        // Retry логика для каждого элемента
+                        let retries = 3;
+                        let success = false;
+
+                        while (retries > 0 && !success) {
+                            try {
+                                await cpCreate({ project_ids: [pid], item });
+                                success = true;
+                                successCount++;
+                            } catch (retryError: any) {
+                                retries--;
+                                if (retries > 0) {
+                                    // Увеличиваем задержку при повторных попытках
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                } else {
+                                    throw retryError;
+                                }
                             }
-                        });
+                        }
 
-                    } catch (error: any) {
-                        console.error('❌ Request failed:', error);
-                        console.error('❌ Error response data:', error.response?.data);
-                        console.error('❌ Error status:', error.response?.status);
-                        console.error('❌ Failed item:', item);
-                        throw error;
+                        // Задержка между успешными запросами
+                        await new Promise(resolve => setTimeout(resolve, 200));
+
+                    } catch (itemError: any) {
+                        errorCount++;
+                        const errorMsg = `Строка "${r.topic || 'без названия'}": ${itemError?.response?.data?.detail || itemError?.message || 'Неизвестная ошибка'}`;
+                        errors.push(errorMsg);
+
+                        // Не прерываем весь процесс, продолжаем со следующим элементом
+                        continue;
                     }
                 }
             }
 
-            console.log('✅ Import completed successfully');
-            onImported();
-            onClose();
+            // Показываем результат импорта
+            if (successCount > 0) {
+                const resultMsg = `Импорт завершён. Успешно: ${successCount}, Ошибок: ${errorCount}`;
+                if (errors.length > 0 && errors.length <= 5) {
+                    setError(`${resultMsg}\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`);
+                } else if (errors.length > 5) {
+                    setError(`${resultMsg}\n\nПоказаны первые 5 ошибок:\n${errors.slice(0, 5).join('\n')}`);
+                } else {
+                    onImported();
+                    onClose();
+                    return;
+                }
+            } else {
+                setError(`Не удалось импортировать ни одной строки.\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`);
+            }
+
+            // Если есть успешные импорты, обновляем список
+            if (successCount > 0) {
+                onImported();
+            }
 
         } catch (e: any) {
-            console.error('💥 Import error:', e);
-            setError(e?.message || "Ошибка при импорте");
+            setError(`Критическая ошибка импорта: ${e?.message || 'Неизвестная ошибка'}`);
         } finally {
             setLoading(false);
         }
