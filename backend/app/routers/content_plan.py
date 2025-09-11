@@ -32,6 +32,7 @@ def _apply_str_fields(obj, payload: dict):
         "tz",
         "status",
         "author",
+        "reviewing_doctor",
         "review",
         "meta_seo",
         "comment",
@@ -43,6 +44,8 @@ def _apply_str_fields(obj, payload: dict):
         obj.chars = payload.get("chars")
     if "publish_date" in payload:
         obj.publish_date = payload.get("publish_date")
+    if "doctor_approved" in payload:
+            obj.doctor_approved = payload.get("doctor_approved")
 
 
 async def check_content_plan_edit_access(db: AsyncSession, user: User, item: ContentPlanItem):
@@ -199,6 +202,7 @@ async def list_content_plan(
     status: Optional[str] = Q(default=None),
     period: Optional[str] = Q(default=None),
     author: Optional[str] = Q(default=None),
+    reviewing_doctor: Optional[str] = Q(default=None),
     limit: int = Q(default=50, ge=1, le=500),
     offset: int = Q(default=0, ge=0),
 ):
@@ -254,6 +258,8 @@ async def list_content_plan(
         stmt = stmt.where(ContentPlanItem.period == period)
     if author:
         stmt = stmt.where(ContentPlanItem.author == author)
+    if reviewing_doctor:
+        stmt = stmt.where(ContentPlanItem.reviewing_doctor.ilike(f"%{reviewing_doctor}%"))
     if search:
         like = f"%{search}%"
         stmt = stmt.where(
@@ -286,6 +292,7 @@ async def count_content_plan(
     status: Optional[str] = Q(default=None),
     period: Optional[str] = Q(default=None),
     author: Optional[str] = Q(default=None),
+    reviewing_doctor: Optional[str] = Q(default=None),
 ):
     await require_page_access(db, user, "content_plan", "viewer")
     if project_id:
@@ -323,6 +330,8 @@ async def count_content_plan(
         stmt = stmt.where(ContentPlanItem.period == period)
     if author:
         stmt = stmt.where(ContentPlanItem.author == author)
+    if reviewing_doctor:
+        stmt = stmt.where(ContentPlanItem.reviewing_doctor.ilike(f"%{reviewing_doctor}%"))
     if search:
         like = f"%{search}%"
         stmt = stmt.where(

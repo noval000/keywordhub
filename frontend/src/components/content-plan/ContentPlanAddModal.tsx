@@ -184,12 +184,16 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                 chars: form.chars ?? null,
                 status: form.status ?? null,
                 author: form.author ?? null,
+                reviewing_doctor: form.reviewing_doctor ?? null,
+                doctor_approved: form.doctor_approved ?? null,
                 review: form.review ? normalizeUrl(form.review) : null,
                 meta_seo: form.meta_seo ?? null,
                 comment: form.comment ?? null,
                 link: form.link ? normalizeUrl(form.link) : null,
                 publish_date: form.publish_date ?? null,
             };
+
+            console.log("Payload to send:", payload); // ДОБАВЬТЕ ЭТО
             await cpCreate({ project_ids: target, item: payload });
             onSaved();
             onClose();
@@ -229,7 +233,8 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                         <div className="grid grid-cols-2 gap-4">
                             {/* Тема */}
                             <div className="col-span-2 relative">
-                                <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Hash
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
                                     className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                                     placeholder="Тема (кластер)"
@@ -240,7 +245,8 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                             {/* Период */}
                             <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Calendar
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
                                     type="month"
                                     className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
@@ -254,12 +260,13 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                             {/* Раздел */}
                             <div className="relative">
-                                <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                <Tag
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10"/>
                                 <Select
                                     className="w-full pl-12"
                                     value={form.section ?? ""}
                                     onChange={(v) => set("section", v || null)}
-                                    options={SECTION_OPTIONS.map((s) => ({ label: s, value: s }))}
+                                    options={SECTION_OPTIONS.map((s) => ({label: s, value: s}))}
                                     placeholder="Раздел"
                                 />
                             </div>
@@ -267,7 +274,8 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                             {/* Направление с кастомным поиском */}
                             <div className="relative">
                                 <div className="">
-                                    <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                    <Target
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10"/>
 
                                     <DirectionSearchSelect
                                         value={form.direction ?? ""}
@@ -281,8 +289,9 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                                 {/* Информационное сообщение вне relative positioning */}
                                 {selectedProjects.length > 1 && (
-                                    <div style={{position: "absolute", top: '-14px', fontSize: '10px'}} className="text-gray-500 flex items-center gap-1">
-                                        <Info className="w-3 h-3" />
+                                    <div style={{position: "absolute", top: '-14px', fontSize: '10px'}}
+                                         className="text-gray-500 flex items-center gap-1">
+                                        <Info className="w-3 h-3"/>
                                         Все направления из реестра кластеров
                                         {directions.length === 0 && " (общих направлений не найдено)"}
                                     </div>
@@ -291,19 +300,21 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                             {/* Статус */}
                             <div className="relative">
-                                <Settings className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                <Settings
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10"/>
                                 <Select
                                     className="w-full pl-12"
                                     value={form.status ?? ""}
                                     onChange={(v) => set("status", v || null)}
-                                    options={STATUS_OPTIONS.map((s) => ({ label: s, value: s }))}
+                                    options={STATUS_OPTIONS.map((s) => ({label: s, value: s}))}
                                     placeholder="Статус"
                                 />
                             </div>
 
                             {/* Автор */}
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                <User
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10"/>
                                 <UserSelect
                                     value={form.author ?? ""}
                                     onChange={(v) => set("author", v || null)}
@@ -314,22 +325,59 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                             {/* Символы */}
                             <div className="relative">
-                                <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Hash
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
                                     className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                                     placeholder="Символы (например: 1000 (1250))"
                                     value={charsDisplay}
                                     onChange={(e) => {
                                         setCharsDisplay(e.target.value);
-                                        const { value } = parseCharsDisplay(e.target.value);
+                                        const {value} = parseCharsDisplay(e.target.value);
                                         set("chars", value);
                                     }}
                                 />
                             </div>
 
+                            {/* Проверяющий врач */}
+                                <div className="relative">
+                                    <Stethoscope
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
+                                    <input
+                                        className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                        placeholder="Имя проверяющего врача"
+                                        value={form.reviewing_doctor ?? ""}
+                                        onChange={(e) => set("reviewing_doctor", e.target.value || null)}
+                                    />
+                                </div>
+                            {/* Проверено врачом - ВНУТРИ grid, перед закрывающим </div> на строке 234 */}
+                                <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer">
+
+                                        <input
+                                            type="checkbox"
+                                            checked={!!form.doctor_approved}
+                                            onChange={(e) => set("doctor_approved", e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                            form.doctor_approved
+                                                ? 'bg-green-600 border-green-600'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        }`}>
+                                            {form.doctor_approved && <CheckSquare className="w-5 h-5 text-white"/>}
+
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Stethoscope className="w-5 h-5 text-green-600"/>
+                                        <span className="text-sm font-medium text-gray-700">Проверено врачом</span>
+                                    </div>
+                                </label>
+
+
+
                             {/* Комментарий */}
                             <div className="col-span-2 relative">
-                                <MessageSquare className="absolute left-4 top-4 text-gray-400 w-5 h-5" />
+                                <MessageSquare className="absolute left-4 top-4 text-gray-400 w-5 h-5"/>
                                 <textarea
                                     className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-none"
                                     placeholder="Комментарий"
@@ -341,7 +389,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
 
                             {/* Дата публикации */}
                             <div className="col-span-2 flex items-center gap-3 justify-end bg-gray-50 rounded-xl p-3">
-                                <Calendar className="w-5 h-5 text-gray-400" />
+                                <Calendar className="w-5 h-5 text-gray-400"/>
                                 <span className="text-sm font-medium text-gray-700">Дата размещения</span>
                                 <input
                                     type="date"
@@ -351,25 +399,26 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                 />
                             </div>
                         </div>
+
                     </div>
 
                     {/* Ссылки */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <Link2 className="w-5 h-5 text-green-600" />
-                            Ссылки
-                        </h3>
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                        <Link2 className="w-5 h-5 text-green-600"/>
+                        Ссылки
+                    </h3>
 
-                        <div className="space-y-4">
-                            {/* ТЗ */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-blue-600" />
-                                    Ссылка на ТЗ
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        className="flex-1 px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    <div className="space-y-4">
+                        {/* ТЗ */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-blue-600"/>
+                                Ссылка на ТЗ
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    className="flex-1 px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                                         placeholder="Google Docs/Sheets"
                                         value={form.tz ?? ""}
                                         onChange={(e) => set("tz", e.target.value || null)}

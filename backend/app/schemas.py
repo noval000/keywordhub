@@ -206,6 +206,8 @@ class ContentPlanItemBase(BaseModel):
     review: Optional[str] = None
     meta_seo: Optional[str] = None
     doctor_review: Optional[bool] = None
+    reviewing_doctor: Optional[str] = None  # Проверяющий врач
+    doctor_approved: Optional[bool] = None  # Проверено врачом
     # ВАЖНО: было Optional[bool], меняем на строку — фронт шлёт текст
     publish_allowed: Optional[str] = None
     comment: Optional[str] = None
