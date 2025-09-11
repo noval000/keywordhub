@@ -20,18 +20,18 @@ async def get_analytics_report(
     """
     Получить аналитический отчет по периодам из контент-плана
 
-    Правильная логика:
-    - ТЗ: есть текст в поле tz
-    - Написано: есть ссылка в поле doctor_review (ссылка на текст у врача)
-    - Готово: есть ссылка в doctor_review И статус "можно размещать"
-    - Прод: есть ссылка в link И статус "размещено" И есть publish_date
+    Упрощенная логика на основе существующих полей:
+    - ТЗ: есть ссылка на тз (поле tz)
+    - Написано: есть ссылка на текст (поле review)
+    - Готово: активен чекбокс "проверено врачом" (doctor_approved = true)
+    - Прод: есть ссылка в link, статус "размещено" и есть publish_date
     """
     try:
         project_filter = ""
         if project_id:
             project_filter = f"WHERE project_id = '{project_id}'"
 
-        # Основной запрос с правильной логикой
+        # Основной запрос с упрощенной логикой
         sql_query = f"""
         WITH unique_items AS (
             SELECT DISTINCT ON (topic, period, direction, section)
@@ -42,20 +42,15 @@ async def get_analytics_report(
         SELECT
             period,
             COUNT(*) as total_themes,
-            -- ТЗ: есть текст в поле tz
+            -- ТЗ: есть ссылка на тз
             SUM(CASE WHEN tz IS NOT NULL AND TRIM(tz) != '' THEN 1 ELSE 0 END) as tz_count,
-            -- Написано: есть ссылка в review (ссылка на проверку у врача)
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
-            -- Готово: есть ссылка в review И статус "можно размещать"
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != ''
-                     AND status = 'можно размещать' THEN 1 ELSE 0 END) as ready_count,
-            -- Прод: есть ссылка в link И статус "размещено" И есть дата
-            SUM(CASE WHEN link IS NOT NULL
-                     AND TRIM(link) != ''
-                     AND status = 'размещено'
-                     AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
+            -- Написано: есть ссылка на текст (поле review)
+            SUM(CASE WHEN review IS NOT NULL AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
+            -- Готово: активен чекбокс "проверено врачом"
+            SUM(CASE WHEN doctor_approved = TRUE THEN 1 ELSE 0 END) as ready_count,
+            -- Прод: есть ссылка в link, статус "размещено" и есть publish_date
+            SUM(CASE WHEN link IS NOT NULL AND TRIM(link) != ''
+                     AND LOWER(status) = 'размещено' AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
         FROM unique_items
         GROUP BY period
         ORDER BY period
@@ -75,16 +70,15 @@ async def get_analytics_report(
         SELECT
             direction,
             COUNT(*) as total_themes,
+            -- ТЗ: есть ссылка на тз
             SUM(CASE WHEN tz IS NOT NULL AND TRIM(tz) != '' THEN 1 ELSE 0 END) as tz_count,
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != ''
-                     AND status = 'можно размещать' THEN 1 ELSE 0 END) as ready_count,
-            SUM(CASE WHEN link IS NOT NULL
-                     AND TRIM(link) != ''
-                     AND status = 'размещено'
-                     AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
+            -- Написано: есть ссылка на текст (поле review)
+            SUM(CASE WHEN review IS NOT NULL AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
+            -- Готово: активен чекбокс "проверено врачом"
+            SUM(CASE WHEN doctor_approved = TRUE THEN 1 ELSE 0 END) as ready_count,
+            -- Прод: есть ссылка в link, статус "размещено" и есть publish_date
+            SUM(CASE WHEN link IS NOT NULL AND TRIM(link) != ''
+                     AND LOWER(status) = 'размещено' AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
         FROM unique_items
         WHERE direction IS NOT NULL AND TRIM(direction) != ''
         GROUP BY direction
@@ -104,25 +98,23 @@ async def get_analytics_report(
         )
         SELECT
             COUNT(*) as total_themes,
+            -- ТЗ: есть ссылка на тз
             SUM(CASE WHEN tz IS NOT NULL AND TRIM(tz) != '' THEN 1 ELSE 0 END) as tz_count,
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
-            SUM(CASE WHEN review IS NOT NULL
-                     AND TRIM(review) != ''
-                     AND status = 'можно размещать' THEN 1 ELSE 0 END) as ready_count,
-            SUM(CASE WHEN link IS NOT NULL
-                     AND TRIM(link) != ''
-                     AND status = 'размещено'
-                     AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
+            -- Написано: есть ссылка на текст (поле review)
+            SUM(CASE WHEN review IS NOT NULL AND TRIM(review) != '' THEN 1 ELSE 0 END) as written_count,
+            -- Готово: активен чекбокс "проверено врачом"
+            SUM(CASE WHEN doctor_approved = TRUE THEN 1 ELSE 0 END) as ready_count,
+            -- Прод: есть ссылка в link, статус "размещено" и есть publish_date
+            SUM(CASE WHEN link IS NOT NULL AND TRIM(link) != ''
+                     AND LOWER(status) = 'размещено' AND publish_date IS NOT NULL THEN 1 ELSE 0 END) as prod_count
         FROM unique_items
         """
 
         result = await db.execute(text(sql_totals))
         totals_row = result.fetchone()
 
-        # Обработка данных остается такой же...
+        # Обработка данных (остается без изменений)
         periods_analytics = []
-
         for item in periods_data:
             analytics_item = {
                 "period": item.period or "Не указан",
@@ -140,7 +132,6 @@ async def get_analytics_report(
             periods_analytics.append(analytics_item)
 
         directions_analytics = []
-
         for item in directions_data:
             analytics_item = {
                 "period": "",
