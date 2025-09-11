@@ -1,33 +1,28 @@
 // app/layout.tsx
 import "./globals.css";
-import type { ReactNode } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
 import Providers from "./providers";
 import OpenAccessModalButton from "@/components/OpenAccessModalButton";
-import {ModalProvider} from "@/app/providers/modal";
-export const metadata = { title: "KeywordHub" };
+import { ModalProvider } from "@/app/providers/modal";
+import { metadata } from "./metadata";  // Импортируем метаданные для сервера
+import ClientAuth from "@/components/ClientAuth";  // Импортируем клиентский компонент для логики авторизации
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="ru">
+        <head>
+            {/* Серверные метаданные */}
+            <title>{metadata.title}</title>
+            <meta name="description" content={metadata.description} />
+        </head>
         <body className="min-h-screen bg-slate-50 text-slate-900">
         <Providers>
             <ModalProvider>
-                <header className="border-b bg-white">
-                    <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-                        <Link href="/" className="font-semibold">KeywordHub</Link>
-                        <nav className="space-x-4 text-sm">
-                            <Link href="/content-plan">Контент-план</Link>
-                            <Link href="/cluster-registry">Семантика</Link>
-                            <Link href="/projects">Проекты</Link>
-                            <Link href="/analytics">Аналитика</Link>
-                            <Link href="/parser">Парсинг врачей</Link>
-                            <Link href="/login">Войти</Link>
-                        </nav>
-                        <OpenAccessModalButton/>
-                    </div>
-                </header>
-                <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+
+                <ClientAuth />
+
+                <main className="mx-auto max-w-8xl px-4 py-6">{children}</main>
             </ModalProvider>
         </Providers>
         </body>

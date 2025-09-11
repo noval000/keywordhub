@@ -1,26 +1,43 @@
 // Месяц → "MM, месяц" по-русски
-export function formatPeriodRuFromMonthInput(value: string): string | null {
-    // value из <input type="month">, формат "YYYY-MM"
-    if (!value) return null;
-    const [y, m] = value.split("-");
-    const month = Number(m);
-    if (!month || month < 1 || month > 12) return null;
-    const names = [
-        "январь","февраль","март","апрель","май","июнь",
-        "июль","август","сентябрь","октябрь","ноябрь","декабрь"
-    ];
-    const ru = names[month - 1];
-    return `${m}, ${ru}`;
+export function formatPeriodRuFromMonthInput(monthInput: string): string | null {
+    if (!monthInput) return null;
+
+    // monthInput приходит в формате "2024-09"
+    const [year, month] = monthInput.split('-');
+    if (!year || !month) return null;
+
+    // Возвращаем в формате "09.2024"
+    return `${month}.${year}`;
 }
 
-// Обратное преобразование: "09, сентябрь" → "YYYY-09" (берём текущий или ближайший год)
 export function toMonthInputFromPeriod(period?: string | null): string {
     if (!period) return "";
-    const m = period.split(",")[0]?.trim();
-    const mm = (m && m.length === 1) ? `0${m}` : m;
-    const now = new Date();
-    const yyyy = String(now.getFullYear());
-    return (mm && /^\d{2}$/.test(mm)) ? `${yyyy}-${mm}` : "";
+
+    // Если период в формате "09.2024"
+    if (period.includes('.')) {
+        const [month, year] = period.split('.');
+        if (month && year) {
+            return `${year}-${month}`;
+        }
+    }
+
+    // Если период в старом формате "сентябрь 2024" - конвертируем
+    const monthMap: Record<string, string> = {
+        'январь': '01', 'февраль': '02', 'март': '03', 'апрель': '04',
+        'май': '05', 'июнь': '06', 'июль': '07', 'август': '08',
+        'сентябрь': '09', 'октябрь': '10', 'ноябрь': '11', 'декабрь': '12'
+    };
+
+    for (const [monthName, monthNum] of Object.entries(monthMap)) {
+        if (period.toLowerCase().includes(monthName)) {
+            const yearMatch = period.match(/\d{4}/);
+            if (yearMatch) {
+                return `${yearMatch[0]}-${monthNum}`;
+            }
+        }
+    }
+
+    return "";
 }
 
 export function normalizeUrl(u?: string | null): string | null {

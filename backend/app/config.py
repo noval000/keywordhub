@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Optional
+from pydantic import Field
 
 class Settings(BaseSettings):
     APP_NAME: str = "KeywordHub"
@@ -29,6 +30,10 @@ class Settings(BaseSettings):
     # Puppeteer настройки
     PUPPETEER_EXECUTABLE_PATH: Optional[str] = "/usr/bin/google-chrome-stable"
     PUPPETEER_HEADLESS: bool = True
+
+    # Новые поля для миграций
+    AUTO_MIGRATE: bool = Field(default=True, description="Автоматически применять миграции при запуске")
+    FAIL_ON_MIGRATION_ERROR: bool = Field(default=True, description="Останавливать приложение при ошибке миграции")
 
     # Логирование
     LOG_LEVEL: str = "INFO"

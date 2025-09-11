@@ -51,6 +51,7 @@ import {
     normalizeUrl,
     formatPeriodRuFromMonthInput,
 } from "@/lib/cp-utils";
+import UserSelect from "@/components/ui/UserSelect";
 
 /* ---------- constants ---------- */
 
@@ -347,13 +348,6 @@ export default function ContentPlanPage() {
                 tooltipValueGetter: (p) => p.data?.sample.topic ?? "",
             },
             {
-                headerName: "Раздел",
-                valueGetter: (p) => p.data?.sample.section ?? "",
-                flex: 1,
-                minWidth: 140,
-                tooltipValueGetter: (p) => p.data?.sample.section ?? "",
-            },
-            {
                 headerName: "Направление",
                 valueGetter: (p) => p.data?.sample.direction ?? "",
                 flex: 1,
@@ -365,39 +359,6 @@ export default function ContentPlanPage() {
                 width: 110,
                 cellRenderer: (p: ICellRendererParams<Grouped>) => (
                     <LinkBtn url={p.data?.sample.tz} label="ТЗ" icon="tz" />
-                ),
-            },
-            {
-                headerName: "Текст (врач)",
-                width: 140,
-                cellRenderer: (p: ICellRendererParams<Grouped>) => (
-                    <LinkBtn url={p.data?.sample.review} label="Текст" icon="review" />
-                ),
-            },
-            {
-                headerName: "Символы",
-                valueGetter: (p) => p.data?.sample.chars ?? "",
-                width: 100,
-            },
-            {
-                headerName: "Meta SEO",
-                valueGetter: (p) => p.data?.sample.meta_seo ?? "",
-                flex: 1,
-                minWidth: 180,
-                tooltipValueGetter: (p) => p.data?.sample.meta_seo ?? "",
-            },
-            {
-                headerName: "Комментарий",
-                valueGetter: (p) => p.data?.sample.comment ?? "",
-                flex: 1,
-                minWidth: 180,
-                tooltipValueGetter: (p) => p.data?.sample.comment ?? "",
-            },
-            {
-                headerName: "Страница",
-                width: 130,
-                cellRenderer: (p: ICellRendererParams<Grouped>) => (
-                    <LinkBtn url={p.data?.sample.link} label="Страница" icon="page" />
                 ),
             },
             {
@@ -616,12 +577,12 @@ export default function ContentPlanPage() {
 
                             {/* Автор */}
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-                                    placeholder="Автор"
+                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                                <UserSelect
                                     value={author}
-                                    onChange={(e) => setAuthor(e.target.value)}
+                                    onChange={(v) => setAuthor(v || "")}
+                                    placeholder="Все авторы"
+                                    className="w-full pl-12"
                                 />
                             </div>
                         </div>

@@ -14,7 +14,6 @@ export default function OpenAccessModalButton() {
             onClick={() => open(<GlobalAccessModal />)}
         >
             <ShieldCheck className="size-4" />
-            Управление доступами
         </button>
     );
 }

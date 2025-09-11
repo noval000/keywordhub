@@ -44,6 +44,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
+    can_view_all_content: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Project(Base):
