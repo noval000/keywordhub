@@ -32,6 +32,7 @@ def _apply_str_fields(obj, payload: dict):
         "tz",
         "status",
         "author",
+        "reviewing_doctor",
         "review",
         "meta_seo",
         "comment",
@@ -43,6 +44,150 @@ def _apply_str_fields(obj, payload: dict):
         obj.chars = payload.get("chars")
     if "publish_date" in payload:
         obj.publish_date = payload.get("publish_date")
+    if "doctor_approved" in payload:
+            obj.doctor_approved = payload.get("doctor_approved")
+
+
+async def check_content_plan_edit_access(db: AsyncSession, user: User, item: ContentPlanItem):
+    """Проверяет права на редактирование записи контент-плана"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"🔍 EDIT ACCESS CHECK:")
+    logger.info(f"  User ID: {user.id}")
+    logger.info(f"  User email: {user.email}")
+    logger.info(f"  is_superuser: {user.is_superuser}")
+    logger.info(f"  Item ID: {item.id}")
+    logger.info(f"  Item author: {item.author}")
+    logger.info(f"  Item created_by: {item.created_by}")
+
+    # Суперпользователь может все
+    if user.is_superuser:
+        logger.info(f"✅ Superuser access granted")
+        return True
+
+    # Проверяем базовый доступ к странице
+    await require_page_access(db, user, "content_plan", "viewer")
+
+    # Получаем роль пользователя
+    from .access import get_user_page_roles
+    user_roles = get_user_page_roles(user.id)
+    page_role = user_roles.get("content_plan", "viewer")
+
+    logger.info(f"  Page role: {page_role}")
+
+    # Admin и Editor могут редактировать все
+    if page_role in ("admin", "editor"):
+        logger.info(f"✅ Admin/Editor access granted")
+        return True
+
+    # Author может редактировать только свои тексты
+    if page_role == "author":
+        user_id_str = str(user.id)
+        is_owner = (item.author == user_id_str or item.created_by == user.id)
+
+        logger.info(f"🔍 Author ownership check: user_id_str={user_id_str}, is_owner={is_owner}")
+
+        if is_owner:
+            logger.info(f"✅ Author owner access granted")
+            return True
+        else:
+            logger.error(f"❌ Author access denied: not owner")
+            raise HTTPException(403, "Author может редактировать только свои записи")
+
+    # Viewer не может редактировать
+    logger.error(f"❌ Access denied for role: {page_role}")
+    raise HTTPException(403, "Нет прав на редактирование")
+
+
+async def check_content_plan_create_access(db: AsyncSession, user: User):
+    """Проверяет права на создание записей контент-плана"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Суперпользователь может все
+    if user.is_superuser:
+        logger.info(f"✅ Superuser create access granted for user {user.id}")
+        return True
+
+    # Проверяем базовый доступ к странице
+    await require_page_access(db, user, "content_plan", "viewer")
+
+    # Получаем роль пользователя
+    from .access import get_user_page_roles
+    user_roles = get_user_page_roles(user.id)
+    page_role = user_roles.get("content_plan", "viewer")
+
+    logger.info(f"🔍 CREATE ACCESS CHECK:")
+    logger.info(f"  User ID: {user.id}")
+    logger.info(f"  Page role: {page_role}")
+
+    # Admin, Editor и Author могут создавать записи
+    if page_role in ("admin", "editor", "author"):
+        logger.info(f"✅ Create access granted for role: {page_role}")
+        return True
+
+    # Viewer не может создавать
+    logger.info(f"❌ Create access denied for role: {page_role}")
+    raise HTTPException(403, "Нет прав на создание записей контент-плана")
+
+
+async def check_content_plan_delete_access(db: AsyncSession, user: User, item: ContentPlanItem):
+    """Проверяет права на удаление записи контент-плана"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Суперпользователь может все
+    if user.is_superuser:
+        logger.info(f"✅ Superuser delete access granted")
+        return True
+
+    # Получаем роль пользователя
+    from .access import get_user_page_roles
+    user_roles = get_user_page_roles(user.id)
+    page_role = user_roles.get("content_plan", "viewer")
+
+    logger.info(f"🔍 DELETE ACCESS CHECK:")
+    logger.info(f"  User ID: {user.id}")
+    logger.info(f"  Page role: {page_role}")
+
+    # Только Admin и Editor могут удалять
+    if page_role in ("admin", "editor"):
+        logger.info(f"✅ Delete access granted for role: {page_role}")
+        return True
+
+    # Author и Viewer не могут удалять
+    logger.info(f"❌ Delete access denied for role: {page_role}")
+    raise HTTPException(403, "Нет прав на удаление записей")
+
+
+async def check_content_plan_import_access(db: AsyncSession, user: User):
+    """Проверяет права на импорт записей контент-плана"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Суперпользователь может все
+    if user.is_superuser:
+        logger.info(f"✅ Superuser import access granted")
+        return True
+
+    # Получаем роль пользователя
+    from .access import get_user_page_roles
+    user_roles = get_user_page_roles(user.id)
+    page_role = user_roles.get("content_plan", "viewer")
+
+    logger.info(f"🔍 IMPORT ACCESS CHECK:")
+    logger.info(f"  User ID: {user.id}")
+    logger.info(f"  Page role: {page_role}")
+
+    # Только Admin и Editor могут импортировать
+    if page_role in ("admin", "editor"):
+        logger.info(f"✅ Import access granted for role: {page_role}")
+        return True
+
+    # Author и Viewer не могут импортировать
+    logger.info(f"❌ Import access denied for role: {page_role}")
+    raise HTTPException(403, "Нет прав на импорт записей")
 
 
 async def check_content_plan_edit_access(db: AsyncSession, user: User, item: ContentPlanItem):
@@ -199,6 +344,7 @@ async def list_content_plan(
     status: Optional[str] = Q(default=None),
     period: Optional[str] = Q(default=None),
     author: Optional[str] = Q(default=None),
+    reviewing_doctor: Optional[str] = Q(default=None),
     limit: int = Q(default=50, ge=1, le=500),
     offset: int = Q(default=0, ge=0),
 ):
@@ -254,6 +400,8 @@ async def list_content_plan(
         stmt = stmt.where(ContentPlanItem.period == period)
     if author:
         stmt = stmt.where(ContentPlanItem.author == author)
+    if reviewing_doctor:
+        stmt = stmt.where(ContentPlanItem.reviewing_doctor.ilike(f"%{reviewing_doctor}%"))
     if search:
         like = f"%{search}%"
         stmt = stmt.where(
@@ -286,6 +434,7 @@ async def count_content_plan(
     status: Optional[str] = Q(default=None),
     period: Optional[str] = Q(default=None),
     author: Optional[str] = Q(default=None),
+    reviewing_doctor: Optional[str] = Q(default=None),
 ):
     await require_page_access(db, user, "content_plan", "viewer")
     if project_id:
@@ -323,6 +472,8 @@ async def count_content_plan(
         stmt = stmt.where(ContentPlanItem.period == period)
     if author:
         stmt = stmt.where(ContentPlanItem.author == author)
+    if reviewing_doctor:
+        stmt = stmt.where(ContentPlanItem.reviewing_doctor.ilike(f"%{reviewing_doctor}%"))
     if search:
         like = f"%{search}%"
         stmt = stmt.where(

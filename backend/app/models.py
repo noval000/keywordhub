@@ -187,7 +187,7 @@ class ContentPlanItem(Base):
     status = Column(String(48))
     author = Column(String(255))
 
-    # На проверке у врача — ссылка
+    # На проверке у врача — ссылка (текст)
     review = Column(String(255))
 
     meta_seo = Column(Text)
@@ -196,6 +196,10 @@ class ContentPlanItem(Base):
     doctor_review = Column(Boolean)
 
     # publish_allowed — УДАЛЕНО из модели и из БД
+
+    # НОВЫЕ ПОЛЯ:
+    reviewing_doctor = Column(String(255))  # Имя проверяющего врача
+    doctor_approved = Column(Boolean)       # Проверено врачом
 
     comment = Column(Text)
     link = Column(String(1024))

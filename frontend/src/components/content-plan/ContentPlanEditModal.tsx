@@ -164,6 +164,8 @@ export default function ContentPlanEditModal({
             chars: item.chars ?? null,
             status: item.status ?? null,
             author: item.author ?? null,
+            reviewing_doctor: item.reviewing_doctor ?? null,  // ИСПРАВЛЕНО: item вместо form
+            doctor_approved: item.doctor_approved ?? null,    // ИСПРАВЛЕНО: item вместо form
             review: item.review ?? null,
             meta_seo: item.meta_seo ?? null,
             comment: item.comment ?? null,
@@ -206,6 +208,8 @@ export default function ContentPlanEditModal({
             chars: f.chars == null || (f.chars as any) === "" ? null : Number(f.chars),
             status: s(f.status),
             author: s(f.author),
+            reviewing_doctor: s(f.reviewing_doctor),
+            doctor_approved: f.doctor_approved,
             review: s(f.review),
             meta_seo: s(f.meta_seo),
             comment: s(f.comment),
@@ -372,6 +376,39 @@ export default function ContentPlanEditModal({
                                     }}
                                 />
                             </div>
+
+                            {/* Проверяющий врач */}
+                            <div className="relative">
+                                <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    placeholder="Имя проверяющего врача"
+                                    value={form.reviewing_doctor ?? ""}
+                                    onChange={(e) => setField("reviewing_doctor", e.target.value || null)}
+                                />
+                            </div>
+                            {/* Проверено врачом - ВНУТРИ grid, перед закрывающим </div> на строке 234 */}
+                            <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer">
+
+                                <input
+                                    type="checkbox"
+                                    checked={!!form.doctor_approved}
+                                    onChange={(e) => setField("doctor_approved", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.doctor_approved
+                                        ? 'bg-green-600 border-green-600'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.doctor_approved && <CheckSquare className="w-5 h-5 text-white"/>}
+
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Stethoscope className="w-5 h-5 text-green-600"/>
+                                    <span className="text-sm font-medium text-gray-700">Проверено врачом</span>
+                                </div>
+                            </label>
 
                             {/* Комментарий */}
                             <div className="col-span-2 relative">

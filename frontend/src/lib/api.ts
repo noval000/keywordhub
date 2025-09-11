@@ -238,6 +238,8 @@ export type CPItem = {
     chars: number | null;
     status: string | null;
     author: string | null;
+    reviewing_doctor: string | null;
+    doctor_approved: boolean | null;
     review: string | null;      // ссылка "на проверке у врача"
     meta_seo: string | null;
     doctor_review?: boolean | null;
@@ -254,6 +256,7 @@ export async function cpList(opts: {
     status?: string;
     period?: string;
     author?: string;
+    reviewing_doctor?: string;
     limit?: number;
     offset?: number;
 }): Promise<CPItem[]> {
@@ -263,6 +266,7 @@ export async function cpList(opts: {
             status: opts.status,
             period: opts.period,
             author: opts.author,
+            reviewing_doctor: opts.reviewing_doctor,
             limit: opts.limit ?? 50,
             offset: opts.offset ?? 0,
         },
@@ -275,6 +279,7 @@ export async function cpCount(opts: {
     status?: string;
     period?: string;
     author?: string;
+    reviewing_doctor?: string;
 }): Promise<number> {
     const r = await api.get<{ total: number }>("/content-plan/count", {
         params: {
@@ -282,6 +287,7 @@ export async function cpCount(opts: {
             status: opts.status,
             period: opts.period,
             author: opts.author,
+            reviewing_doctor: opts.reviewing_doctor,
         },
     });
     return r.data.total;

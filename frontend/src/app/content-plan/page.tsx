@@ -170,6 +170,9 @@ export default function ContentPlanPage() {
     const [period, setPeriod] = useState<string>("");
     const [periodMonthUI, setPeriodMonthUI] = useState<string>("");
     const [author, setAuthor] = useState("");
+    const [reviewingDoctor, setReviewingDoctor] = useState("");
+    const [doctorSuggestions, setDoctorSuggestions] = useState<string[]>([]);
+    const [showDoctorSuggestions, setShowDoctorSuggestions] = useState(false);
 
     const [compact, setCompact] = useState(true); // компактный режим
 
@@ -189,26 +192,28 @@ export default function ContentPlanPage() {
     });
 
     const listQ = useQuery({
-        queryKey: ["cp_flat", search, status, period, author, tick],
+        queryKey: ["cp_flat", search, status, period, author, reviewingDoctor, tick],
         queryFn: () =>
             cpList({
                 search: search || undefined,
                 status: status || undefined,
                 period: period || undefined,
                 author: author || undefined,
+                reviewing_doctor: reviewingDoctor || undefined,
                 limit: 500,
                 offset: 0,
             }),
     });
 
     const totalQ = useQuery({
-        queryKey: ["cp_count", search, status, period, author, tick],
+        queryKey: ["cp_count", search, status, period, author, reviewingDoctor, tick],
         queryFn: () =>
             cpCount({
                 search: search || undefined,
                 status: status || undefined,
                 period: period || undefined,
                 author: author || undefined,
+                reviewing_doctor: reviewingDoctor || undefined,
             }),
     });
 
@@ -235,6 +240,26 @@ export default function ContentPlanPage() {
         return { grouped: Array.from(map.values()), byKey: map };
     }, [listQ.data]);
 
+    // Получаем уникальных врачей из данных
+    const uniqueDoctors = useMemo(() => {
+        const doctors = new Set<string>();
+        const rows = listQ.data || [];
+        for (const row of rows) {
+            if (row.reviewing_doctor && row.reviewing_doctor.trim()) {
+                doctors.add(row.reviewing_doctor.trim());
+            }
+        }
+        return Array.from(doctors).sort();
+    }, [listQ.data]);
+
+// Фильтруем врачей по введенному тексту
+    const filteredDoctors = useMemo(() => {
+        if (!reviewingDoctor) return uniqueDoctors.slice(0, 10); // показываем первые 10
+        return uniqueDoctors
+            .filter(doctor => doctor.toLowerCase().includes(reviewingDoctor.toLowerCase()))
+            .slice(0, 10); // ограничиваем до 10 результатов
+    }, [uniqueDoctors, reviewingDoctor]);
+
     // счётчики по статусам (по сгруппированным записям)
     const statusCounters = useMemo(() => {
         const c: Record<string, number> = {};
@@ -260,8 +285,8 @@ export default function ContentPlanPage() {
     // пресеты
     const presets: Array<{ name: string; apply: () => void; icon: any }> = [
         {
-            name: "Текущий месяц + В работе",
-            icon: Clock,
+            name: "Текущий месяц",
+            icon: Calendar,
             apply: () => {
                 const now = new Date();
                 const y = now.getFullYear();
@@ -269,19 +294,33 @@ export default function ContentPlanPage() {
                 const ym = `${y}-${m}`;
                 setPeriodMonthUI(ym);
                 setPeriod(formatPeriodRuFromMonthInput(ym) || "");
+                setStatus("");
+            },
+        },
+        {
+            name: "В работе",
+            icon: Clock,
+            apply: () => {
+                setPeriod("");
+                setPeriodMonthUI("");
                 setStatus("В работе");
+            },
+        },
+        {
+            name: "ТЗ готово",
+            icon: CheckCircle,
+            apply: () => {
+                setPeriod("");
+                setPeriodMonthUI("");
+                setStatus("ТЗ готово");
             },
         },
         {
             name: "Можно размещать",
             icon: AlertTriangle,
             apply: () => {
-                const now = new Date();
-                const y = now.getFullYear();
-                const m = String(now.getMonth() + 1).padStart(2, "0");
-                const ym = `${y}-${m}`;
-                setPeriodMonthUI(ym);
-                setPeriod(formatPeriodRuFromMonthInput(ym) || "");
+                setPeriod("");
+                setPeriodMonthUI("");
                 setStatus("Можно размещать");
             },
         },
@@ -400,6 +439,8 @@ export default function ContentPlanPage() {
         setSearch("");
         setStatus("");
         setAuthor("");
+        setReviewingDoctor("");
+        setShowDoctorSuggestions(false);
         setPeriod("");
         setPeriodMonthUI("");
         setTick((t) => t + 1);
@@ -531,7 +572,7 @@ export default function ContentPlanPage() {
                         </div>
 
                         {/* Поиск и основные фильтры */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             {/* Поиск */}
                             <div className="relative">
                                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -585,6 +626,47 @@ export default function ContentPlanPage() {
                                     className="w-full pl-12"
                                 />
                             </div>
+
+                            {/* Фильтр по врачу с автокомплитом */}
+                            <div className="relative">
+                                <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-20" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    placeholder="Поиск по врачу..."
+                                    value={reviewingDoctor}
+                                    onChange={(e) => {
+                                        setReviewingDoctor(e.target.value);
+                                        setShowDoctorSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowDoctorSuggestions(true)}
+                                    onBlur={() => {
+                                        // Задержка чтобы успел сработать клик по элементу списка
+                                        setTimeout(() => setShowDoctorSuggestions(false), 200);
+                                    }}
+                                />
+
+                                {/* Выпадающий список */}
+                                {showDoctorSuggestions && filteredDoctors.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        {filteredDoctors.map((doctor, index) => (
+                                            <button
+                                                key={index}
+                                                className="w-full px-4 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 text-sm"
+                                                onClick={() => {
+                                                    setReviewingDoctor(doctor);
+                                                    setShowDoctorSuggestions(false);
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Stethoscope className="w-4 h-4 text-gray-400" />
+                                                    <span>{doctor}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
 
                         {/* Быстрые статусы и дополнительные кнопки */}
