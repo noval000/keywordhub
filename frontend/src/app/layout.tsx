@@ -7,6 +7,7 @@ import OpenAccessModalButton from "@/components/OpenAccessModalButton";
 import { ModalProvider } from "@/app/providers/modal";
 import { metadata } from "./metadata";  // Импортируем метаданные для сервера
 import ClientAuth from "@/components/ClientAuth";  // Импортируем клиентский компонент для логики авторизации
+import '../app/globals.css'
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
@@ -16,7 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <title>{metadata.title}</title>
             <meta name="description" content={metadata.description} />
         </head>
-        <body className="min-h-screen bg-slate-50 text-slate-900">
+        <body className="min-h-screen bg-slate-50 text-slate-900 bg-rose">
         <Providers>
             <ModalProvider>
 

@@ -280,12 +280,12 @@ export default function ContentPlanEditModal({
     if (!open || !item) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl w-[800px] max-w-[95vw] max-h-[90vh] overflow-hidden border border-white/20">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-rose rounded-3xl shadow-2xl w-[800px] max-w-[95vw] max-h-[90vh] overflow-hidden border border-white/20">
                 {/* Заголовок */}
                 <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-100 flex items-center">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
                             <Edit className="w-5 h-5" />
                         </div>
                         <h2 className="text-xl font-semibold text-gray-900">Информация</h2>
@@ -312,7 +312,7 @@ export default function ContentPlanEditModal({
                     {/* Основные поля */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-orange-600" />
+                            <FileText className="w-5 h-5 text-[var(--color-primary)]" />
                             Основная информация
                         </h3>
 
@@ -428,7 +428,7 @@ export default function ContentPlanEditModal({
                                 />
                             </div>
                             {/* Проверено врачом - ВНУТРИ grid, перед закрывающим </div> на строке 234 */}
-                            <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer">
+                            <label className="flex items-center gap-3 bg-[var(--color-coffee)] rounded-xl p-3 cursor-pointer">
 
                                 <input
                                     type="checkbox"
@@ -438,15 +438,15 @@ export default function ContentPlanEditModal({
                                 />
                                 <div className={`w-5 h-5 rounded border-2 transition-colors ${
                                     form.doctor_approved
-                                        ? 'bg-green-600 border-green-600'
+                                        ? 'bg-[var(--color-primary-hover)]'
                                         : 'border-gray-300 hover:border-gray-400'
                                 }`}>
                                     {form.doctor_approved && <CheckSquare className="w-5 h-5 text-white"/>}
 
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Stethoscope className="w-5 h-5 text-green-600"/>
-                                    <span className="text-sm font-medium text-gray-700">Проверено врачом</span>
+                                    <Stethoscope className="w-5 h-5 text-[var(--color-coffee-text)]"/>
+                                    <span className="text-sm font-medium text-[var(--color-coffee-text)]">Проверено врачом</span>
                                 </div>
                             </label>
 
@@ -704,14 +704,14 @@ export default function ContentPlanEditModal({
                 {/* Футер */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button
-                        className="px-6 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+                        className="px-6 py-2.5 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2"
                         onClick={onClose}
                         disabled={pending}
                     >
                         Отмена
                     </button>
                     <button
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={pending}
                         onClick={onSubmit}
                     >
