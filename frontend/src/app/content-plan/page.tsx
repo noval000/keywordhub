@@ -59,6 +59,7 @@ import UserSelect from "@/components/ui/UserSelect";
 import TZCreateModal from "@/components/tz/TZCreateModal";
 import {TZButton} from "@/components/tz/TZButton";
 import TZViewModal from "@/components/tz/TZViewModal";
+import Select from "@/components/ui/Select";
 
 /* ---------- constants ---------- */
 
@@ -113,7 +114,7 @@ function ActionsRenderer(p: ICellRendererParams<Grouped, any>) {
     return (
         <div className="h-full w-full flex items-center justify-center gap-2">
             <button
-                className="p-2 rounded-xl text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-transparent hover:border-blue-200"
+                className="p-2 rounded-xl text-[var(--color-primary)] bg-white/80 border-2 border-[var(--color-primary)]/20 hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all duration-200 shadow-sm hover:shadow-md"
                 title="Редактировать"
                 onClick={(e) => {
                     e.stopPropagation();
@@ -123,7 +124,7 @@ function ActionsRenderer(p: ICellRendererParams<Grouped, any>) {
                 <Pencil size={16} />
             </button>
             <button
-                className="p-2 rounded-xl text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 border border-transparent hover:border-purple-200"
+                className="p-2 rounded-xl text-[var(--color-coffee-text)] bg-[var(--color-coffee)]/60 border-2 border-[var(--color-coffee)] hover:bg-[var(--color-coffee)] hover:text-[var(--color-coffee-text)] transition-all duration-200 shadow-sm hover:shadow-md"
                 title="Привязать к проектам"
                 onClick={(e) => {
                     e.stopPropagation();
@@ -434,7 +435,7 @@ export default function ContentPlanPage() {
                                 href={normalizeUrl(tz)}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 btn-coffeeDark text-white rounded-3xl text-xs transition-colors"
                                 title="Открыть внешнее ТЗ"
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -455,7 +456,7 @@ export default function ContentPlanPage() {
                                     setSelectedItem(item); // передаем CPItem, а не Grouped
                                     setShowTZViewModal(true);
                                 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 btn-coffeeDark text-white rounded-3xl text-xs transition-colors"
                                 title="Открыть техническое задание"
                             >
                                 <Eye size={14} />
@@ -475,7 +476,7 @@ export default function ContentPlanPage() {
                                 setTZMode('create');
                                 setShowTZModal(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 btn btn--alt text-white rounded-3xl text-xs transition-colors"
                             title="Создать техническое задание"
                         >
                             <Plus size={14} />
@@ -536,7 +537,7 @@ export default function ContentPlanPage() {
                 {/* Заголовок */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <div className="p-3 rounded-2xl bg-[var(--color-primary-hover)] text-white">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
@@ -552,7 +553,7 @@ export default function ContentPlanPage() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setShowImport(true)}
-                            className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
+                            className="flex items-center gap-2 btn-coffeeDark transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                         >
                             <Download className="w-4 h-4" />
@@ -575,9 +576,9 @@ export default function ContentPlanPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Всего записей</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{statistics.total}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{statistics.total}</p>
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-base rounded-xl">
                                 <BarChart3 className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -587,9 +588,9 @@ export default function ContentPlanPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">В работе</p>
-                                <p className="text-2xl font-bold text-blue-600 mt-1">{statistics.inWork}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{statistics.inWork}</p>
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-blue rounded-xl">
                                 <Clock className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -599,9 +600,9 @@ export default function ContentPlanPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Можно размещать</p>
-                                <p className="text-2xl font-bold text-red-600 mt-1">{statistics.canPlace}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{statistics.canPlace}</p>
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-red-500 to-red-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-green rounded-xl">
                                 <AlertTriangle className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -611,9 +612,9 @@ export default function ContentPlanPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Отправлено</p>
-                                <p className="text-2xl font-bold text-yellow-600 mt-1">{statistics.sent}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{statistics.sent}</p>
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-pink rounded-xl">
                                 <TrendingUp className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -623,9 +624,9 @@ export default function ContentPlanPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Размещено</p>
-                                <p className="text-2xl font-bold text-green-600 mt-1">{statistics.placed}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{statistics.placed}</p>
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-purple rounded-xl">
                                 <CheckCircle className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -633,7 +634,7 @@ export default function ContentPlanPage() {
                 </div>
 
                 {/* Панель фильтров */}
-                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
+                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl relative z-50">
                     <div className="space-y-6">
                         {/* Пресеты */}
                         <div className="flex items-center gap-3">
@@ -663,7 +664,7 @@ export default function ContentPlanPage() {
                             <div className="relative">
                                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Поиск по теме, разделу, направлению..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
@@ -671,28 +672,25 @@ export default function ContentPlanPage() {
                             </div>
 
                             {/* Статус */}
-                            <div className="relative">
-                                <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <select
-                                    className="w-full pl-12 pr-10 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer"
+                            <div className="relative z-50">
+                                <Filter
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10"/>
+                                <Select
+                                    className="w-full pl-12"
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                >
-                                    <option value="">Все статусы</option>
-                                    {STATUS_OPTIONS.map((s) => (
-                                        <option key={s} value={s}>
-                                            {s}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={(v) => setStatus(v || "")}
+                                    options={STATUS_OPTIONS.map((s) => ({label: s, value: s}))}
+                                    placeholder="Все статусы"
+                                />
                             </div>
 
                             {/* Период */}
                             <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Calendar
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
                                     type="month"
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={periodMonthUI}
                                     onChange={(e) => {
                                         setPeriodMonthUI(e.target.value);
@@ -703,7 +701,7 @@ export default function ContentPlanPage() {
                             </div>
 
                             {/* Автор */}
-                            <div className="relative">
+                            <div className="relative z-40">
                                 <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                                 <UserSelect
                                     value={author}
@@ -714,10 +712,10 @@ export default function ContentPlanPage() {
                             </div>
 
                             {/* Фильтр по врачу с автокомплитом */}
-                            <div className="relative">
+                            <div className="relative z-30">
                                 <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-20" />
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Поиск по врачу..."
                                     value={reviewingDoctor}
                                     onChange={(e) => {
@@ -731,20 +729,29 @@ export default function ContentPlanPage() {
                                     }}
                                 />
 
-                                {/* Выпадающий список */}
+                                {/* Выпадающий список врачей */}
                                 {showDoctorSuggestions && filteredDoctors.length > 0 && (
-                                    <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                    <div
+                                        className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-[var(--color-primary)]/20 rounded-xl shadow-xl max-h-48 overflow-y-auto"
+                                        style={{ zIndex: 999999 }}
+                                    >
                                         {filteredDoctors.map((doctor, index) => (
                                             <button
                                                 key={index}
-                                                className="w-full px-4 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 text-sm"
+                                                className="w-full px-4 py-2 text-left focus:outline-none transition-colors text-sm cursor-pointer"
                                                 onClick={() => {
                                                     setReviewingDoctor(doctor);
                                                     setShowDoctorSuggestions(false);
                                                 }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = 'rgba(214, 0, 109, 0.1)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                }}
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    <Stethoscope className="w-4 h-4 text-gray-400" />
+                                                    <Stethoscope className="w-4 h-4 text-gray-400"/>
                                                     <span>{doctor}</span>
                                                 </div>
                                             </button>
@@ -785,7 +792,7 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
+                                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                     >
                                         Текущий
@@ -800,7 +807,7 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
+                                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                     >
                                         Предыдущий
@@ -809,7 +816,7 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={() => setCompact((v) => !v)}
-                                    className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
+                                    className="flex items-center gap-2 btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                 >
                                     {compact ? <Expand className="w-4 h-4" /> : <Shrink className="w-4 h-4" />}
@@ -818,7 +825,7 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={resetFilters}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-sm text-white rounded-3xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-3xl btn-pink disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <RotateCcw className="w-4 h-4" />
                                     Сбросить
@@ -829,7 +836,7 @@ export default function ContentPlanPage() {
                 </div>
 
                 {/* Таблица */}
-                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
+                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl relative z-10">
                     <div className="ag-theme-quartz rounded-2xl overflow-hidden border border-gray-200/50" style={{ height: 560 }}>
                         <AgGridReact<Grouped>
                             ref={gridRef}
@@ -885,7 +892,7 @@ export default function ContentPlanPage() {
                                 onClick={() => {
                                     if (confirm("Удалить выбранные тексты во всех проектах?")) del.mutate();
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-3xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-3xl btn-pink disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Удалить выбранные

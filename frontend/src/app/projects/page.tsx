@@ -32,6 +32,7 @@ import {
     CheckCircle2,
     Clock,
     Eye,
+    BarChart3,
 } from "lucide-react";
 
 export default function ProjectsPage() {
@@ -97,13 +98,13 @@ export default function ProjectsPage() {
         <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                    <div className="p-3 rounded-xl bg-[var(--color-primary-hover)] text-white">
                         <FolderOpen className="w-5 h-5" />
                     </div>
                     <div>
                         <Link
                             href={`/projects/${project.id}`}
-                            className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                            className="text-lg font-semibold text-gray-900 hover:text-[var(--color-primary)] transition-colors"
                         >
                             {project.name}
                         </Link>
@@ -135,14 +136,14 @@ export default function ProjectsPage() {
                     <>
                         <Link
                             href={`/projects/${project.id}`}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 text-sm font-medium"
+                            className="flex items-center gap-2 px-4 py-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-xl text-sm font-medium"
                         >
                             <Eye className="w-4 h-4" />
                             Открыть
                         </Link>
                         <button
                             onClick={() => mArchive.mutate(project.id)}
-                            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-200 text-sm"
+                            className="flex items-center gap-2 px-4 py-2 btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-xl"
                         >
                             <Archive className="w-4 h-4" />
                             Архив
@@ -151,7 +152,7 @@ export default function ProjectsPage() {
                             onClick={() => {
                                 if (confirm("Удалить проект безвозвратно?")) mDelete.mutate(project.id);
                             }}
-                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-200 text-sm ml-auto"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-xl btn-pink transition-colors ml-auto"
                         >
                             <Trash2 className="w-4 h-4" />
                             Удалить
@@ -161,7 +162,7 @@ export default function ProjectsPage() {
                     <>
                         <button
                             onClick={() => mRestore.mutate(project.id)}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 text-sm font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors duration-300 text-sm font-medium"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Восстановить
@@ -170,7 +171,7 @@ export default function ProjectsPage() {
                             onClick={() => {
                                 if (confirm("Удалить проект безвозвратно?")) mDelete.mutate(project.id);
                             }}
-                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-200 text-sm ml-auto"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-xl btn-pink transition-colors ml-auto"
                         >
                             <Trash2 className="w-4 h-4" />
                             Удалить
@@ -185,13 +186,13 @@ export default function ProjectsPage() {
         <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-md hover:shadow-lg transition-all duration-200">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                    <div className="p-2 rounded-lg bg-[var(--color-primary-hover)] text-white">
                         <FolderOpen className="w-4 h-4" />
                     </div>
                     <div>
                         <Link
                             href={`/projects/${project.id}`}
-                            className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                            className="font-medium text-gray-900 hover:text-[var(--color-primary)] transition-colors"
                         >
                             {project.name}
                         </Link>
@@ -219,14 +220,14 @@ export default function ProjectsPage() {
                         <>
                             <Link
                                 href={`/projects/${project.id}`}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                                 title="Открыть"
                             >
                                 <Eye className="w-4 h-4" />
                             </Link>
                             <button
                                 onClick={() => mArchive.mutate(project.id)}
-                                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                                className="p-2 text-[var(--color-coffee-text)] hover:bg-[var(--color-coffee)]/20 rounded-lg transition-colors"
                                 title="Архивировать"
                             >
                                 <Archive className="w-4 h-4" />
@@ -267,61 +268,61 @@ export default function ProjectsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+        <div className="min-h-screen from-gray-50 via-white to-blue-50/30">
             <div className="p-6 space-y-6">
                 {/* Заголовок */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                        <div className="p-3 rounded-2xl bg-[var(--color-primary-hover)] text-white">
                             <FolderOpen className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text">
                                 Проекты
                             </h1>
                             <p className="text-gray-500 mt-1">
-                                Управление проектами и их настройками
+                                Управление проектами и их настройками • Всего: {(activeCount.data?.length || 0) + (archivedCount.data?.length || 0)}
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Статистика */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Активные проекты</p>
-                                <p className="text-2xl font-bold text-green-600 mt-1">{activeCount.data?.length || 0}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{activeCount.data?.length || 0}</p>
                             </div>
-                            <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-base rounded-xl">
                                 <Activity className="w-5 h-5 text-white" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">В архиве</p>
-                                <p className="text-2xl font-bold text-gray-600 mt-1">{archivedCount.data?.length || 0}</p>
+                                <p className="text-2xl font-bold text-all mt-1">{archivedCount.data?.length || 0}</p>
                             </div>
-                            <div className="p-3 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-blue rounded-xl">
                                 <ArchiveX className="w-5 h-5 text-white" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Всего проектов</p>
-                                <p className="text-2xl font-bold text-blue-600 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {(activeCount.data?.length || 0) + (archivedCount.data?.length || 0)}
                                 </p>
                             </div>
-                            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                                <FolderOpen className="w-5 h-5 text-white" />
+                            <div className="p-2 bg-gradient-to-br bg-green rounded-xl">
+                                <BarChart3 className="w-5 h-5 text-white" />
                             </div>
                         </div>
                     </div>
@@ -330,7 +331,7 @@ export default function ProjectsPage() {
                 {/* Форма создания проекта */}
                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
                             <Plus className="w-5 h-5" />
                         </div>
                         <h2 className="text-xl font-semibold text-gray-900">Создать новый проект</h2>
@@ -341,7 +342,7 @@ export default function ProjectsPage() {
                             <FolderOpen className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 placeholder="Название проекта *"
-                                className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 value={name}
                                 onChange={e => { setName(e.target.value); setErr(null); }}
                             />
@@ -351,7 +352,7 @@ export default function ProjectsPage() {
                             <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 placeholder="Регион"
-                                className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 value={region}
                                 onChange={e => setRegion(e.target.value)}
                             />
@@ -361,14 +362,14 @@ export default function ProjectsPage() {
                             <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 placeholder="Домен"
-                                className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 value={domain}
                                 onChange={e => setDomain(e.target.value)}
                             />
                         </div>
 
                         <button
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center justify-center gap-2 px-6 py-3 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!name || mCreate.isPending}
                             onClick={() => mCreate.mutate()}
                         >
@@ -378,9 +379,9 @@ export default function ProjectsPage() {
                     </div>
 
                     {err && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 text-red-600" />
-                            <span className="text-red-600 text-sm">{err}</span>
+                        <div className="mt-4 flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-sm">{err}</span>
                         </div>
                     )}
                 </div>
@@ -395,7 +396,7 @@ export default function ProjectsPage() {
                                     onClick={() => setTab("active")}
                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                                         tab === "active"
-                                            ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg"
+                                            ? "bg-green-600 text-white shadow-lg"
                                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                     }`}
                                 >
@@ -413,7 +414,7 @@ export default function ProjectsPage() {
                                     onClick={() => setTab("archived")}
                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                                         tab === "archived"
-                                            ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg"
+                                            ? "bg-[var(--color-coffee)] text-[var(--color-coffee-text)] shadow-lg"
                                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                     }`}
                                 >
@@ -421,7 +422,7 @@ export default function ProjectsPage() {
                                     Архив
                                     <span className={`px-2 py-0.5 rounded-full text-xs ${
                                         tab === "archived"
-                                            ? "bg-white/20 text-white"
+                                            ? "bg-white/20"
                                             : "bg-gray-200 text-gray-600"
                                     }`}>
                                         {archivedCount.data?.length || 0}
@@ -434,7 +435,7 @@ export default function ProjectsPage() {
                                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Поиск проектов..."
-                                    className="pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="pl-10 pr-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                 />
@@ -447,7 +448,7 @@ export default function ProjectsPage() {
                                 onClick={() => setViewMode("grid")}
                                 className={`p-2.5 rounded-xl transition-all duration-200 ${
                                     viewMode === "grid"
-                                        ? "bg-blue-600 text-white"
+                                        ? "bg-[var(--color-primary)] text-white"
                                         : "text-gray-600 hover:bg-gray-100"
                                 }`}
                                 title="Сетка"
@@ -458,7 +459,7 @@ export default function ProjectsPage() {
                                 onClick={() => setViewMode("list")}
                                 className={`p-2.5 rounded-xl transition-all duration-200 ${
                                     viewMode === "list"
-                                        ? "bg-blue-600 text-white"
+                                        ? "bg-[var(--color-primary)] text-white"
                                         : "text-gray-600 hover:bg-gray-100"
                                 }`}
                                 title="Список"
@@ -486,8 +487,8 @@ export default function ProjectsPage() {
                     </div>
                 ) : (
                     <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-12 border border-white/20 shadow-xl text-center">
-                        <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full inline-block mb-4">
-                            <FolderOpen className="w-8 h-8 text-gray-400" />
+                        <div className="w-16 h-16 bg-[var(--color-coffee)]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FolderOpen className="w-8 h-8 text-[var(--color-coffee-text)]" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
                             {searchTerm ? "Проекты не найдены" : `Нет ${tab === "active" ? "активных" : "архивных"} проектов`}

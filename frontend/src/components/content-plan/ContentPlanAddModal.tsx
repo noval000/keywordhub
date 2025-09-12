@@ -208,7 +208,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                 {/* Заголовок */}
                 <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 flex items-center">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
                             <Plus className="w-5 h-5" />
                         </div>
                         <h2 className="text-xl font-semibold text-gray-900">Добавить тему</h2>
@@ -226,7 +226,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                     {/* Основные поля */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-blue-600" />
+                            <FileText className="w-5 h-5 text-[var(--color-primary-hover)]" />
                             Основная информация
                         </h3>
 
@@ -236,7 +236,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                 <Hash
                                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Тема (кластер)"
                                     value={form.topic ?? ""}
                                     onChange={(e) => set("topic", e.target.value || null)}
@@ -249,7 +249,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
                                     type="month"
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={monthUI}
                                     onChange={(e) => {
                                         setMonthUI(e.target.value);
@@ -328,7 +328,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                 <Hash
                                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Символы (например: 1000 (1250))"
                                     value={charsDisplay}
                                     onChange={(e) => {
@@ -344,14 +344,14 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                     <Stethoscope
                                         className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                     <input
-                                        className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                        className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                         placeholder="Имя проверяющего врача"
                                         value={form.reviewing_doctor ?? ""}
                                         onChange={(e) => set("reviewing_doctor", e.target.value || null)}
                                     />
                                 </div>
-                            {/* Проверено врачом - ВНУТРИ grid, перед закрывающим </div> на строке 234 */}
-                                <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer">
+                            {/* Проверено врачом */}
+                                <label className="flex items-center gap-3 bg-[var(--color-coffee)] rounded-xl p-3 cursor-pointer">
 
                                         <input
                                             type="checkbox"
@@ -361,15 +361,15 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                                         />
                                         <div className={`w-5 h-5 rounded border-2 transition-colors ${
                                             form.doctor_approved
-                                                ? 'bg-green-600 border-green-600'
+                                                ? 'bg-[var(--color-primary-hover)]'
                                                 : 'border-gray-300 hover:border-gray-400'
                                         }`}>
                                             {form.doctor_approved && <CheckSquare className="w-5 h-5 text-white"/>}
 
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Stethoscope className="w-5 h-5 text-green-600"/>
-                                        <span className="text-sm font-medium text-gray-700">Проверено врачом</span>
+                                        <Stethoscope className="w-5 h-5 text-[var(--color-coffee-text)]"/>
+                                        <span className="text-sm font-medium text-[var(--color-coffee-text)]">Проверено врачом</span>
                                     </div>
                                 </label>
 
@@ -379,7 +379,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                             <div className="col-span-2 relative">
                                 <MessageSquare className="absolute left-4 top-4 text-gray-400 w-5 h-5"/>
                                 <textarea
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-none"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200 resize-none"
                                     placeholder="Комментарий"
                                     rows={3}
                                     value={form.comment ?? ""}
@@ -405,7 +405,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                     {/* Ссылки */}
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                        <Link2 className="w-5 h-5 text-green-600"/>
+                        <Link2 className="w-5 h-5 text-[var(--color-primary)]"/>
                         Ссылки
                     </h3>
 
@@ -511,7 +511,7 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                     {/* Выбор проектов */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <Target className="w-5 h-5 text-indigo-600" />
+                            <Target className="w-5 h-5 text-[var(--color-primary-hover)]" />
                             Привязать к проектам
                         </h3>
 
@@ -567,14 +567,14 @@ export default function ContentPlanAddModal({ open, onClose, onSaved, projects: 
                 {/* Футер */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button
-                        className="px-6 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                         onClick={onClose}
                         disabled={loading}
                     >
                         Отмена
                     </button>
                     <button
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-[var(--color-primary)] text-sm bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
                         onClick={onSave}
                     >

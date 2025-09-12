@@ -265,13 +265,13 @@ export default function ProjectCorePage() {
     }, [projectId, search, direction, cluster]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+        <div className="min-h-screen from-gray-50 via-white to-blue-50/30">
             <div className="p-6 space-y-6">
                 {/* Заголовок проекта */}
                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                            <div className="p-3 rounded-2xl bg-[var(--color-primary-hover)] text-white">
                                 <FolderOpen className="w-6 h-6" />
                             </div>
                             <div>
@@ -310,14 +310,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowEdit(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-white/80 rounded-xl transition-all duration-200 border border-gray-200/50"
+                                className="flex items-center gap-2 px-4 py-2.5 btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-xl"
                             >
                                 <Edit className="w-4 h-4" />
                                 Редактировать
                             </button>
                             <button
                                 onClick={() => setShowDelete(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-200"
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm text-white rounded-xl btn-pink transition-colors"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Удалить
@@ -332,14 +332,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Всего запросов</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {statisticsFromDB.data?.total ?? totalQueries.data ?? "—"}
                                 </p>
                                 {statisticsFromDB.isLoading && (
                                     <p className="text-xs text-gray-400 mt-0.5">Загрузка...</p>
                                 )}
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-base rounded-xl">
                                 <Database className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -349,14 +349,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">С направлением</p>
-                                <p className="text-2xl font-bold text-blue-600 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {statisticsFromDB.data?.with_direction ?? "—"}
                                 </p>
                                 {statisticsFromDB.isLoading && (
                                     <p className="text-xs text-gray-400 mt-0.5">Загрузка...</p>
                                 )}
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-blue rounded-xl">
                                 <Target className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -366,14 +366,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">С кластером</p>
-                                <p className="text-2xl font-bold text-purple-600 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {statisticsFromDB.data?.with_cluster ?? "—"}
                                 </p>
                                 {statisticsFromDB.isLoading && (
                                     <p className="text-xs text-gray-400 mt-0.5">Загрузка...</p>
                                 )}
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-green rounded-xl">
                                 <Hash className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -383,14 +383,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Со страницей</p>
-                                <p className="text-2xl font-bold text-green-600 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {statisticsFromDB.data?.with_page ?? "—"}
                                 </p>
                                 {statisticsFromDB.isLoading && (
                                     <p className="text-xs text-gray-400 mt-0.5">Загрузка...</p>
                                 )}
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-pink rounded-xl">
                                 <FileText className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -400,14 +400,14 @@ export default function ProjectCorePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">С тегами</p>
-                                <p className="text-2xl font-bold text-orange-600 mt-1">
+                                <p className="text-2xl font-bold text-all mt-1">
                                     {statisticsFromDB.data?.with_tags ?? "—"}
                                 </p>
                                 {statisticsFromDB.isLoading && (
                                     <p className="text-xs text-gray-400 mt-0.5">Загрузка...</p>
                                 )}
                             </div>
-                            <div className="p-2 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+                            <div className="p-2 bg-gradient-to-br bg-purple rounded-xl">
                                 <Tag className="w-5 h-5 text-white" />
                             </div>
                         </div>
@@ -432,7 +432,7 @@ export default function ProjectCorePage() {
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Поиск по фразе..."
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 />
                             </div>
 
@@ -443,7 +443,7 @@ export default function ProjectCorePage() {
                                     value={direction}
                                     onChange={(e) => setDirection(e.target.value)}
                                     placeholder="Направление..."
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     list="dirlist"
                                 />
                                 <datalist id="dirlist">
@@ -458,7 +458,7 @@ export default function ProjectCorePage() {
                                     value={cluster}
                                     onChange={(e) => setCluster(e.target.value)}
                                     placeholder="Кластер..."
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     list="clulist"
                                 />
                                 <datalist id="clulist">
@@ -483,7 +483,7 @@ export default function ProjectCorePage() {
                             <div className="flex items-center gap-3">
                                 <a
                                     href={exportCsvUrl}
-                                    className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-blue-200"
+                                    className="flex items-center gap-2 px-4 py-2 btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-xl"
                                 >
                                     <Download className="w-4 h-4" />
                                     Экспорт CSV
@@ -491,7 +491,7 @@ export default function ProjectCorePage() {
 
                                 <button
                                     onClick={() => setShowImport(true)}
-                                    className="flex items-center gap-2 px-4 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-xl transition-all duration-200 border border-green-200"
+                                    className="flex items-center gap-2 px-4 py-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-xl text-sm"
                                 >
                                     <Upload className="w-4 h-4" />
                                     Импорт
@@ -499,7 +499,7 @@ export default function ProjectCorePage() {
 
                                 <button
                                     onClick={() => setShowGlobalDelete(true)}
-                                    className="flex items-center gap-2 px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-200"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-xl btn-pink transition-colors"
                                 >
                                     <AlertTriangle className="w-4 h-4" />
                                     Глобальное удаление
@@ -533,7 +533,7 @@ export default function ProjectCorePage() {
                         {/* Заголовок */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                                <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
                                     <Zap className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -547,14 +547,14 @@ export default function ProjectCorePage() {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => gridRef.current?.api.selectAll()}
-                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                                    className="flex items-center gap-2 px-3 py-2 text-sm btn-coffeeDark transition-colors duration-300 ease-in-out rounded-xl"
                                 >
                                     <CheckSquare className="w-4 h-4" />
                                     Выделить всё
                                 </button>
                                 <button
                                     onClick={() => gridRef.current?.api.deselectAll()}
-                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-colors border border-gray-200"
                                 >
                                     <Square className="w-4 h-4" />
                                     Снять выделение
@@ -568,7 +568,7 @@ export default function ProjectCorePage() {
                                 <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Кластер"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={bulkFields.set_cluster || ""}
                                     onChange={(e) => setBulkFields((s) => ({ ...s, set_cluster: e.target.value || undefined }))}
                                 />
@@ -578,7 +578,7 @@ export default function ProjectCorePage() {
                                 <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Направление"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={bulkFields.set_direction || ""}
                                     onChange={(e) => setBulkFields((s) => ({ ...s, set_direction: e.target.value || undefined }))}
                                 />
@@ -588,7 +588,7 @@ export default function ProjectCorePage() {
                                 <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Страница"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={bulkFields.set_page ?? ""}
                                     onChange={e => setBulkFields(s => ({ ...s, set_page: e.target.value || undefined }))}
                                 />
@@ -598,7 +598,7 @@ export default function ProjectCorePage() {
                                 <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Установить теги (через запятую)"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     onChange={(e) => setBulkFields((s) => ({ ...s, set_tags: e.target.value ? e.target.value.split(",").map((x) => x.trim()).filter(Boolean) : undefined }))}
                                 />
                             </div>
@@ -607,7 +607,7 @@ export default function ProjectCorePage() {
                                 <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Добавить теги (через запятую)"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-green-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-all duration-200"
                                     onChange={(e) => setBulkFields((s) => ({ ...s, add_tags: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) }))}
                                 />
                             </div>
@@ -616,20 +616,20 @@ export default function ProjectCorePage() {
                                 <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     placeholder="Удалить теги (через запятую)"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-200"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-white/80 border-2 border-red-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all duration-200"
                                     onChange={(e) => setBulkFields((s) => ({ ...s, remove_tags: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) }))}
                                 />
                             </div>
 
                             <input
                                 placeholder="Тип страницы"
-                                className="px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="px-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 onChange={(e) => setBulkFields((s) => ({ ...s, set_page_type: e.target.value || undefined }))}
                             />
 
                             <input
                                 placeholder="Тип запроса"
-                                className="px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="px-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 onChange={(e) => setBulkFields((s) => ({ ...s, set_query_type: e.target.value || undefined }))}
                             />
 
@@ -638,7 +638,7 @@ export default function ProjectCorePage() {
                                     type="number"
                                     min={0}
                                     placeholder="Wordstat"
-                                    className="flex-1 px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="flex-1 px-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     onChange={(e) => {
                                         const v = e.target.value;
                                         setBulkFields((s) => ({ ...s, set_ws_flag: v === "" ? undefined : Math.max(0, Number(v)) }));
@@ -653,7 +653,7 @@ export default function ProjectCorePage() {
                             <span className="text-sm font-medium text-gray-700">Дата:</span>
                             <input
                                 type="date"
-                                className="px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                className="px-4 py-2.5 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                 value={bulkFields.set_dt && bulkFields.set_dt !== "" ? bulkFields.set_dt : ""}
                                 onChange={(e) => {
                                     const v = e.target.value;
@@ -679,7 +679,7 @@ export default function ProjectCorePage() {
                             <button
                                 disabled={!selected.length || bulk.isPending}
                                 onClick={() => bulk.mutate({ ...bulkFields, ids: selected })}
-                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-6 py-3 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Zap className="w-4 h-4" />
                                 {bulk.isPending ? "Применение..." : "Применить к выбранным"}
@@ -692,7 +692,7 @@ export default function ProjectCorePage() {
                                         del.mutate();
                                     }
                                 }}
-                                className="flex items-center gap-2 px-6 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-6 py-3 text-sm text-white rounded-xl btn-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 {del.isPending ? "Удаление..." : "Удалить выбранные"}
@@ -705,7 +705,7 @@ export default function ProjectCorePage() {
                                     const r = await api.get(`/queries/${id}/versions`);
                                     setVersionLog(r.data);
                                 }}
-                                className="flex items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-4 py-3 btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <History className="w-4 h-4" />
                                 История версий

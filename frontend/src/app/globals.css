@@ -67,21 +67,6 @@ html, body, :root {
     color: #212223;
 }
 
-.btn-altColor {
-    color: var(--color-text-alt);
-    background-color: transparent;
-    border: 2px solid var(--color-text-alt);
-    border-radius: 9999px; /* rounded-3xl */
-    padding: 0.5rem 1rem; /* py-2 px-4 */
-    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out;
-    cursor: pointer;
-}
-
-.btn-altColor:hover {
-    background-color: var(--color-blur);
-    color: var(--color-whte);
-}
-
 .btn.btn--alt {
     --color: var(--color-primary);
     --bg: var(--color-primary-hover);
@@ -99,12 +84,56 @@ html, body, :root {
 .btn-coffeeDark {
     color: var(--color-coffee-text);
     background-color: var(--color-coffee);
-    border: 2px solid var(--color-coffee-text);
+    border: 2px solid var(--color-coffee);
 }
 
 .btn-coffeeDark:hover {
     background-color: #b8a99f;
     color: var(--color-whte);
+    border: 2px solid #b8a99f;
+}
+
+.btn-pink {
+    color: var(--color-whte);
+    background-color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.btn-pink:hover {
+    background-color: #b8005a;
+    color: var(--color-whte);
+    border: 2px solid #b8005a;
+}
+
+.bg-base {
+    background: #EEE5E1;
+}
+.text-basec {
+    color: #EEE5E1;
+}
+.bg-blue {
+    background: #D6E1F3;
+}
+.text-blue {
+    color: #D6E1F3;
+}
+.bg-green {
+    background: #DDE7CA;
+}
+.text-green {
+    color: #DDE7CA;
+}
+.bg-pink {
+    background: #F8D6DE;
+}
+.text-pink {
+    color: #F8D6DE;
+}
+.bg-purple {
+    background: #DAD1EE;
+}
+.text-purple {
+    color: #DAD1EE;
 }
 
 /* Для textarea с автоматической высотой */
@@ -132,4 +161,72 @@ html, body, :root {
 
 .bg-rose {
     background-color: #F9F4F4;
+}
+
+
+Copy/* Убираем дефолтную синюю подсветку для всех элементов */
+*:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Убираем синюю подсветку для input, textarea, select */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Убираем автозаполнение стили браузера */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Убираем дефолтные стили для date/month inputs в WebKit */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+    color: var(--color-primary);
+    opacity: 0.7;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+
+
+/* Исправление z-index для выпадающих списков */
+div[style*="z-index: 99999"] {
+    z-index: 99999 !important;
+}
+
+/* AG Grid z-index исправления */
+.ag-theme-quartz {
+    z-index: 1 !important;
+}
+
+.ag-root-wrapper {
+    z-index: 1 !important;
+}
+
+.ag-body-viewport {
+    overflow: visible !important;
+}
+
+/* Для Select dropdown */
+.select-dropdown-portal {
+    z-index: 99999 !important;
+    position: fixed !important;
+}
+
+.ag-theme-quartz .ag-root-wrapper {
+    z-index: 1 !important;
 }
