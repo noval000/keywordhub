@@ -704,14 +704,14 @@ export default function ContentPlanEditModal({
                 {/* Футер */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button
-                        className="px-6 py-2.5 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2"
+                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                         onClick={onClose}
                         disabled={pending}
                     >
                         Отмена
                     </button>
                     <button
-                        className="flex items-center gap-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-[var(--color-primary)] text-sm bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={pending}
                         onClick={onSubmit}
                     >
@@ -761,14 +761,14 @@ export default function ContentPlanEditModal({
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
                                 disabled={deletingTZ}
-                                className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                                className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-3xl transition-colors disabled:opacity-50"
                             >
                                 Отмена
                             </button>
                             <button
                                 onClick={handleDeleteTZ}
                                 disabled={deletingTZ}
-                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-3xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {deletingTZ ? 'Удаление...' : 'Удалить'}
                             </button>

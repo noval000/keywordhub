@@ -552,7 +552,7 @@ export default function ContentPlanPage() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setShowImport(true)}
-                            className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+                            className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                         >
                             <Download className="w-4 h-4" />
@@ -647,7 +647,7 @@ export default function ContentPlanPage() {
                                     <button
                                         key={preset.name}
                                         onClick={preset.apply}
-                                        className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+                                        className="flex items-center text-sm gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                     >
                                         <Icon className="w-4 h-4" />
@@ -785,7 +785,7 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                     >
                                         Текущий
@@ -800,7 +800,7 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                     >
                                         Предыдущий
@@ -809,7 +809,7 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={() => setCompact((v) => !v)}
-                                    className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+                                    className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2
 "
                                 >
                                     {compact ? <Expand className="w-4 h-4" /> : <Shrink className="w-4 h-4" />}
@@ -818,7 +818,7 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={resetFilters}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-sm text-white rounded-3xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <RotateCcw className="w-4 h-4" />
                                     Сбросить
@@ -870,13 +870,13 @@ export default function ContentPlanPage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => gridRef.current?.api.selectAll()}
-                                className="px-4 py-2 text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl"
+                                className="px-4 py-2 text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl"
                             >
                                 Выделить всё
                             </button>
                             <button
                                 onClick={() => gridRef.current?.api.deselectAll()}
-                                className="text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2"
+                                className="text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                             >
                                 Снять выделение
                             </button>
@@ -885,7 +885,7 @@ export default function ContentPlanPage() {
                                 onClick={() => {
                                     if (confirm("Удалить выбранные тексты во всех проектах?")) del.mutate();
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-3xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Удалить выбранные
