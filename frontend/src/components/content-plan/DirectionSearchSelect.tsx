@@ -8,6 +8,7 @@ interface DirectionSearchSelectProps {
     placeholder?: string;
     disabled?: boolean;
     className?: string;
+    inputClassName?: string;
 }
 
 function DirectionSearchSelect({
@@ -16,7 +17,8 @@ function DirectionSearchSelect({
                                    options,
                                    placeholder = "Выберите направление",
                                    disabled = false,
-                                   className = ""
+                                   className = "",
+                                   inputClassName = ""
                                }: DirectionSearchSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -117,9 +119,10 @@ function DirectionSearchSelect({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 disabled={disabled}
-                className={`${className} pr-10 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 ${
-                    disabled ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`${className} pr-10 py-3 ${
+                    inputClassName ||
+                    "bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 autoComplete="off"
             />
 
@@ -127,7 +130,7 @@ function DirectionSearchSelect({
             <button
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--color-coffee-text)] hover:text-[var(--color-primary)] transition-colors"
                 disabled={disabled}
                 tabIndex={-1} // Убираем из tab navigation
             >
@@ -138,7 +141,7 @@ function DirectionSearchSelect({
             {isOpen && !disabled && (
                 <div
                     ref={dropdownRef}
-                    className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto"
+                    className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-[var(--color-primary)]/20 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto"
                 >
                     {filteredOptions.length > 0 ? (
                         <div className="py-1">
@@ -147,7 +150,7 @@ function DirectionSearchSelect({
                                     key={`${option}-${index}`}
                                     type="button"
                                     onClick={() => handleOptionSelect(option)}
-                                    className="w-full text-left px-4 py-2 hover:bg-orange-50 focus:bg-orange-50 focus:outline-none transition-colors text-sm text-gray-900"
+                                    className="w-full text-left px-4 py-2 hover:bg-pink-100 focus:bg-pink-100 focus:outline-none transition-colors text-sm text-gray-900 cursor-pointer"
                                     onMouseDown={(e) => e.preventDefault()} // Предотвращаем blur при клике
                                 >
                                     {option}
@@ -155,7 +158,7 @@ function DirectionSearchSelect({
                             ))}
                         </div>
                     ) : (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        <div className="px-4 py-3 text-sm text-[var(--color-coffee-text)] text-center">
                             {searchTerm ? 'Направление не найдено' : 'Нет доступных направлений'}
                         </div>
                     )}

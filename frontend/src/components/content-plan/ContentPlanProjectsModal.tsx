@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchProjects, cpCreate, cpDelete, type CPItem, type ProjectDto } from "@/lib/api";
+import '../../app/globals.css'
 import {
     Link2,
     X,
@@ -136,7 +137,7 @@ export default function ContentPlanProjectsModal({
                 {/* Заголовок */}
                 <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100 flex items-center">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
                             <Link2 className="w-5 h-5" />
                         </div>
                         <h2 className="text-xl font-semibold text-gray-900">Привязка к проектам</h2>
@@ -155,7 +156,7 @@ export default function ContentPlanProjectsModal({
                     {/* Информация о элементе */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <FileText className="w-5 h-5 text-blue-600" />
+                            <FileText className="w-5 h-5 text-[var(--color-primary-hover)]" />
                             Информация о контенте
                         </h3>
 
@@ -202,7 +203,7 @@ export default function ContentPlanProjectsModal({
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                <Target className="w-5 h-5 text-indigo-600" />
+                                <Target className="w-5 h-5 text-[var(--color-primary-hover)]" />
                                 Выбор проектов
                             </h3>
                             <div className="text-sm text-gray-500">
@@ -274,14 +275,14 @@ export default function ContentPlanProjectsModal({
                 {/* Футер */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button
-                        className="px-6 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                         onClick={onClose}
                         disabled={loading}
                     >
                         Отмена
                     </button>
                     <button
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-[var(--color-primary)] text-sm bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
                         onClick={onSave}
                     >

@@ -313,14 +313,35 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
         let errorCount = 0;
         const errors: string[] = [];
 
+        // 🆕 Настройки батчинга
+        const BATCH_SIZE = 10; // Импортируем по 10 записей за раз
+        const DELAY_BETWEEN_BATCHES = 1000; // 1 секунда между батчами
+        const MAX_RETRIES = 3;
+
         try {
             for (const pid of selectedProjectIds) {
-                for (const r of rows) {
-                    try {
+
+
+                // Разбиваем строки на батчи
+                const batches = [];
+                for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+                    batches.push(rows.slice(i, i + BATCH_SIZE));
+                }
+
+
+
+                // Обрабатываем каждый батч
+                for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+                    const batch = batches[batchIndex];
+
+
+                    // Подготавливаем элементы батча
+                    const itemsToImport = batch.map(r => {
                         const normalizedPeriod = r.period ? normalizePeriod(r.period) : null;
                         const normalizedAuthor = findUserByName(r.author || '', users);
 
-                        const item: Partial<CPItem> = {
+                        return {
+                            project_id: pid,
                             period: normalizedPeriod,
                             section: r.section ?? null,
                             direction: r.direction ?? null,
@@ -333,59 +354,64 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
                             doctor_approved: null,
                             review: normalizeUrlOrNull(r.review),
                             meta_seo: r.meta_seo ?? null,
+                            publish_allowed: r.publish_allowed ?? null,
                             comment: r.comment ?? null,
                             link: normalizeUrlOrNull(r.link),
                             publish_date: r.publish_date ?? null,
                         };
+                    });
 
-                        // Retry логика для каждого элемента
-                        let retries = 3;
-                        let success = false;
+                    // Пытаемся импортировать батч с повторными попытками
+                    let batchSuccess = false;
+                    let retries = MAX_RETRIES;
 
-                        while (retries > 0 && !success) {
-                            try {
-                                await cpCreate({ project_ids: [pid], item });
-                                success = true;
-                                successCount++;
-                            } catch (retryError: any) {
-                                retries--;
-                                if (retries > 0) {
-                                    // Увеличиваем задержку при повторных попытках
-                                    await new Promise(resolve => setTimeout(resolve, 1000));
-                                } else {
-                                    throw retryError;
-                                }
+                    while (retries > 0 && !batchSuccess) {
+                        try {
+                            const result = await cpImport(itemsToImport);
+                            successCount += result.created;
+                            batchSuccess = true;
+
+
+                            // Обновляем прогресс для пользователя
+                            const progress = Math.round(((batchIndex + 1) / batches.length) * 100);
+                            setError(`Импорт в процессе... ${progress}% (${successCount} из ${rows.length * selectedProjectIds.length})`);
+
+                        } catch (batchError: any) {
+                            retries--;
+                            console.error(`❌ Ошибка в батче ${batchIndex + 1}, попытка ${MAX_RETRIES - retries}:`, batchError);
+
+                            if (retries > 0) {
+                                await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES * 2));
+                            } else {
+                                // Все попытки исчерпаны
+                                errorCount += batch.length;
+                                const topics = batch.map(r => r.topic).slice(0, 3).join(', ');
+                                const errorMsg = `Батч ${batchIndex + 1} (${topics}...): ${batchError?.response?.data?.detail || batchError?.message || 'Network Error'}`;
+                                errors.push(errorMsg);
                             }
                         }
+                    }
 
-                        // Задержка между успешными запросами
-                        await new Promise(resolve => setTimeout(resolve, 200));
-
-                    } catch (itemError: any) {
-                        errorCount++;
-                        const errorMsg = `Строка "${r.topic || 'без названия'}": ${itemError?.response?.data?.detail || itemError?.message || 'Неизвестная ошибка'}`;
-                        errors.push(errorMsg);
-
-                        // Не прерываем весь процесс, продолжаем со следующим элементом
-                        continue;
+                    // Пауза между батчами (если не последний батч)
+                    if (batchIndex < batches.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
                     }
                 }
             }
 
-            // Показываем результат импорта
+            // Показываем финальный результат
             if (successCount > 0) {
-                const resultMsg = `Импорт завершён. Успешно: ${successCount}, Ошибок: ${errorCount}`;
-                if (errors.length > 0 && errors.length <= 5) {
-                    setError(`${resultMsg}\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`);
-                } else if (errors.length > 5) {
-                    setError(`${resultMsg}\n\nПоказаны первые 5 ошибок:\n${errors.slice(0, 5).join('\n')}`);
+                const resultMsg = `Импорт завершён! ✅ Успешно: ${successCount}, ❌ Ошибок: ${errorCount}`;
+                if (errors.length > 0) {
+                    setError(`${resultMsg}\n\n🚨 Ошибки (первые 5):\n${errors.slice(0, 5).join('\n')}`);
                 } else {
+                    // Полный успех - закрываем модал
                     onImported();
                     onClose();
                     return;
                 }
             } else {
-                setError(`Не удалось импортировать ни одной строки.\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`);
+                setError(`❌ Не удалось импортировать ни одной строки.\n\n🚨 Ошибки:\n${errors.slice(0, 5).join('\n')}`);
             }
 
             // Если есть успешные импорты, обновляем список
@@ -394,7 +420,7 @@ export default function ContentPlanImportModal({ projects, onClose, onImported }
             }
 
         } catch (e: any) {
-            setError(`Критическая ошибка импорта: ${e?.message || 'Неизвестная ошибка'}`);
+            setError(`💥 Критическая ошибка импорта: ${e?.message || 'Неизвестная ошибка'}`);
         } finally {
             setLoading(false);
         }

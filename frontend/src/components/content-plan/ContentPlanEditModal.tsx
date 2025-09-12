@@ -321,7 +321,7 @@ export default function ContentPlanEditModal({
                             <div className="col-span-2 relative">
                                 <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Тема (кластер)"
                                     value={form.topic ?? ""}
                                     onChange={(e) => setField("topic", e.target.value || null)}
@@ -333,7 +333,7 @@ export default function ContentPlanEditModal({
                                 <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
                                     type="month"
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={monthUI}
                                     onChange={(e) => {
                                         setMonthUI(e.target.value);
@@ -366,6 +366,7 @@ export default function ContentPlanEditModal({
                                         placeholder={loadingDirections ? "Загрузка направлений..." : "Направление"}
                                         disabled={loadingDirections}
                                         className="w-full pl-12"
+                                        inputClassName="bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     />
                                 </div>
 
@@ -406,7 +407,7 @@ export default function ContentPlanEditModal({
                             <div className="relative">
                                 <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Символы (например: 1000 (1250))"
                                     value={charsDisplay}
                                     onChange={(e) => {
@@ -421,13 +422,13 @@ export default function ContentPlanEditModal({
                             <div className="relative">
                                 <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
                                 <input
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     placeholder="Имя проверяющего врача"
                                     value={form.reviewing_doctor ?? ""}
                                     onChange={(e) => setField("reviewing_doctor", e.target.value || null)}
                                 />
                             </div>
-                            {/* Проверено врачом - ВНУТРИ grid, перед закрывающим </div> на строке 234 */}
+                            {/* Проверено врачом */}
                             <label className="flex items-center gap-3 bg-[var(--color-coffee)] rounded-xl p-3 cursor-pointer">
 
                                 <input
@@ -454,7 +455,7 @@ export default function ContentPlanEditModal({
                             <div className="col-span-2 relative">
                                 <MessageSquare className="absolute left-4 top-4 text-gray-400 w-5 h-5" />
                                 <textarea
-                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 resize-none"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200 resize-none"
                                     placeholder="Комментарий"
                                     rows={3}
                                     value={form.comment ?? ""}
@@ -468,7 +469,7 @@ export default function ContentPlanEditModal({
                                 <span className="text-sm font-medium text-gray-700">Дата размещения</span>
                                 <input
                                     type="date"
-                                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200"
+                                    className="px-4 py-2 bg-white border-2 border-[var(--color-primary)]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                     value={form.publish_date ?? ""}
                                     onChange={(e) => setField("publish_date", e.target.value || null)}
                                 />
@@ -479,7 +480,7 @@ export default function ContentPlanEditModal({
                     {/* Ссылки */}
                     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                            <Link2 className="w-5 h-5 text-green-600" />
+                            <Link2 className="w-5 h-5 text-[var(--color-primary)]" />
                             Ссылки
                         </h3>
 
@@ -498,7 +499,7 @@ export default function ContentPlanEditModal({
                                 </label>
                                 <div className="flex gap-2">
                                     <input
-                                        className="flex-1 px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                        className="flex-1 px-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                         placeholder="Google Docs/Sheets"
                                         value={form.tz ?? ""}
                                         onChange={(e) => setField("tz", e.target.value || null)}
@@ -509,7 +510,7 @@ export default function ContentPlanEditModal({
                                             href={normalizeUrl(form.tz)!}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                            className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn-coffeeDark transition-colors"
                                         >
                                             <ExternalLink className="w-4 h-4"/>
                                             Открыть
@@ -522,7 +523,7 @@ export default function ContentPlanEditModal({
                                             <button
                                                 type="button"
                                                 onClick={() => setShowTZViewModal(true)}
-                                                className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                                                className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn-coffeeDark transition-colors"
                                                 title="Просмотреть техническое задание"
                                             >
                                                 <Eye className="w-4 h-4"/>
@@ -535,7 +536,7 @@ export default function ContentPlanEditModal({
                                                     setTZMode('edit');
                                                     setShowTZModal(true);
                                                 }}
-                                                className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                                className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn btn--alt transition-colors"
                                                 title="Редактировать техническое задание"
                                             >
                                                 <FileText className="w-4 h-4"/>
@@ -544,7 +545,7 @@ export default function ContentPlanEditModal({
                                             <button
                                                 type="button"
                                                 onClick={() => setShowDeleteConfirm(true)}
-                                                className="flex items-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+                                                className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Удалить техническое задание"
                                                 disabled={deletingTZ}
                                             >
@@ -560,7 +561,7 @@ export default function ContentPlanEditModal({
                                                 setTZMode('create');
                                                 setShowTZModal(true);
                                             }}
-                                            className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                                            className="flex items-center gap-2 px-4 py-3 rounded-3xl btn btn--alt transition-colors"
                                             title="Создать техническое задание"
                                         >
                                             <Plus className="w-4 h-4"/>
@@ -578,7 +579,7 @@ export default function ContentPlanEditModal({
                                 </label>
                                 <div className="flex gap-2">
                                     <input
-                                        className="flex-1 px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200"
+                                        className="flex-1 px-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                         placeholder="Ссылка на текст"
                                         value={form.review ?? ""}
                                         onChange={(e) => setField("review", e.target.value || null)}
@@ -589,7 +590,7 @@ export default function ContentPlanEditModal({
                                             href={normalizeUrl(form.review)!}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                                            className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn-coffeeDark transition-colors"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                             Открыть
@@ -606,7 +607,7 @@ export default function ContentPlanEditModal({
                                 </label>
                                 <div className="flex gap-2">
                                     <input
-                                        className="flex-1 px-4 py-3 bg-white/80 border border-gray-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200"
+                                        className="flex-1 px-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
                                         placeholder="Ссылка на страницу"
                                         value={form.link ?? ""}
                                         onChange={(e) => setField("link", e.target.value || null)}
@@ -617,7 +618,7 @@ export default function ContentPlanEditModal({
                                             href={normalizeUrl(form.link)!}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+                                            className="flex items-center text-sm gap-2 px-4 py-3 rounded-3xl btn-coffeeDark transition-colors"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                             Открыть
@@ -704,7 +705,7 @@ export default function ContentPlanEditModal({
                 {/* Футер */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button
-                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] text-sm hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
+                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                         onClick={onClose}
                         disabled={pending}
                     >
@@ -736,6 +737,7 @@ export default function ContentPlanEditModal({
                         setEditingTZId(null);
                         // Здесь можно добавить логику обновления ссылки на ТЗ
                         // или обновить состояние родительского компонента
+                        onSaved();
                     }}
                 />
             )}
@@ -768,7 +770,7 @@ export default function ContentPlanEditModal({
                             <button
                                 onClick={handleDeleteTZ}
                                 disabled={deletingTZ}
-                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-3xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-2.5 flex items-center text-sm rounded-3xl btn-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {deletingTZ ? 'Удаление...' : 'Удалить'}
                             </button>

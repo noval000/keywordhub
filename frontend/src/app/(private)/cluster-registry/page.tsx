@@ -7,15 +7,579 @@ import {
     deleteClusterRegistryRow, fetchProjects
 } from "@/lib/api";
 import { api } from "@/lib/api";
+import Select from "@/components/ui/Select";
+import {
+    Search,
+    Filter,
+    RotateCcw,
+    Upload,
+    Plus,
+    Trash2,
+    Database,
+    BarChart3,
+    CheckSquare,
+    Square,
+    FileText,
+    Target,
+    Globe,
+    Download,
+    Eye,
+    Settings,
+    AlertTriangle,
+    Info,
+    Edit,
+    Save,
+    X,
+    Hash,
+    Tag,
+    Globe2,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown
+} from "lucide-react";
+
+// Модалка редактирования кластера (такая же как была)
+function ClusterEditModal({
+                              open,
+                              cluster,
+                              onClose,
+                              onSaved
+                          }: {
+    open: boolean;
+    cluster: any | null;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const [pending, setPending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [form, setForm] = useState({
+        name: "",
+        direction: "",
+        page_type: "",
+        has_core: false,
+        has_brief: false,
+        is_published: false,
+        demand: 0
+    });
+
+    useEffect(() => {
+        if (!open || !cluster) return;
+        setError(null);
+        setForm({
+            name: cluster.name || "",
+            direction: cluster.direction || "",
+            page_type: cluster.page_type || "",
+            has_core: cluster.has_core || false,
+            has_brief: cluster.has_brief || false,
+            is_published: cluster.is_published || false,
+            demand: cluster.demand || 0
+        });
+    }, [open, cluster]);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open, onClose]);
+
+    const setField = (field: string, value: any) => {
+        setForm(prev => ({ ...prev, [field]: value }));
+    };
+
+    const onSubmit = async () => {
+        if (!cluster) return;
+        setPending(true);
+        setError(null);
+        try {
+            const cleanData = {
+                direction: form.direction?.trim() || null,
+                page_type: form.page_type?.trim() || null,
+                has_core: form.has_core,
+                has_brief: form.has_brief,
+                is_published: form.is_published,
+                demand: Number(form.demand) || 0
+            };
+
+            await updateClusterRegistryRow(cluster.id, cleanData);
+            onSaved();
+            onClose();
+        } catch (e: any) {
+            setError(e?.message || "Не удалось сохранить изменения");
+        } finally {
+            setPending(false);
+        }
+    };
+
+    if (!open || !cluster) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-rose rounded-3xl shadow-2xl w-[600px] max-w-[95vw] max-h-[90vh] overflow-hidden border border-white/20">
+                {/* Заголовок */}
+                <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-100 flex items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
+                            <Edit className="w-5 h-5" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900">Редактировать кластер</h2>
+                    </div>
+                    <button
+                        className="ml-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                        onClick={onClose}
+                        aria-label="Закрыть"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Содержимое */}
+                <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+                    {/* Ошибка */}
+                    {error && (
+                        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-sm">{error}</span>
+                        </div>
+                    )}
+
+                    {/* Основные поля */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <Database className="w-5 h-5 text-[var(--color-primary)]" />
+                            Информация о кластере
+                        </h3>
+
+                        <div className="space-y-4">
+                            {/* Название кластера (readonly) */}
+                            <div className="relative">
+                                <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <div className="w-full pl-12 pr-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-xl text-gray-700 font-medium">
+                                    {cluster.name}
+                                </div>
+                                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                                    Название не редактируется
+                                </span>
+                            </div>
+
+                            {/* Направление */}
+                            <div className="relative">
+                                <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Направление кластера"
+                                    value={form.direction}
+                                    onChange={(e) => setField("direction", e.target.value)}
+                                />
+                            </div>
+
+                            {/* Тип страницы */}
+                            <div className="relative">
+                                <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Тип страницы"
+                                    value={form.page_type}
+                                    onChange={(e) => setField("page_type", e.target.value)}
+                                />
+                            </div>
+
+                            {/* Спрос */}
+                            <div className="relative">
+                                <BarChart3 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="number"
+                                    min="0"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Уровень спроса"
+                                    value={form.demand}
+                                    onChange={(e) => setField("demand", e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Статусы */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                            <Settings className="w-5 h-5 text-[var(--color-primary)]" />
+                            Статусы и флаги
+                        </h3>
+
+                        <div className="space-y-4">
+                            {/* Ядро */}
+                            <label className="flex items-center gap-3 bg-blue-50 rounded-xl p-3 cursor-pointer hover:bg-blue-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.has_core}
+                                    onChange={(e) => setField("has_core", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.has_core
+                                        ? 'bg-[var(--color-primary-hover)] border-[var(--color-primary-hover)]'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.has_core && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Target className="w-5 h-5 text-blue-600"/>
+                                    <span className="text-sm font-medium text-blue-700">Ядро</span>
+                                </div>
+                            </label>
+
+                            {/* ТЗ */}
+                            <label className="flex items-center gap-3 bg-purple-50 rounded-xl p-3 cursor-pointer hover:bg-purple-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.has_brief}
+                                    onChange={(e) => setField("has_brief", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.has_brief
+                                        ? 'bg-purple-600 border-purple-600'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.has_brief && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-purple-600"/>
+                                    <span className="text-sm font-medium text-purple-700">Есть техническое задание</span>
+                                </div>
+                            </label>
+
+                            {/* Размещено */}
+                            <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer hover:bg-green-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.is_published}
+                                    onChange={(e) => setField("is_published", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.is_published
+                                        ? 'bg-green-600 border-green-600'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.is_published && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Globe className="w-5 h-5 text-green-600"/>
+                                    <span className="text-sm font-medium text-green-700">Размещено на сайте</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Футер */}
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+                    <button
+                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
+                        onClick={onClose}
+                        disabled={pending}
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        className="flex items-center gap-2 text-[var(--color-primary)] text-sm bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={pending}
+                        onClick={onSubmit}
+                    >
+                        <Save className="w-4 h-4" />
+                        {pending ? "Сохранение..." : "Сохранить"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Модалка добавления кластера
+function ClusterAddModal({
+                             open,
+                             projectId,
+                             onClose,
+                             onSaved
+                         }: {
+    open: boolean;
+    projectId: string;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const [pending, setPending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [form, setForm] = useState({
+        name: "",
+        direction: "",
+        page_type: "",
+        has_core: false,
+        has_brief: false,
+        is_published: false,
+        demand: 0
+    });
+
+    useEffect(() => {
+        if (!open) return;
+        setError(null);
+        setForm({
+            name: "",
+            direction: "",
+            page_type: "",
+            has_core: false,
+            has_brief: false,
+            is_published: false,
+            demand: 0
+        });
+    }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open, onClose]);
+
+    const setField = (field: string, value: any) => {
+        setForm(prev => ({ ...prev, [field]: value }));
+    };
+
+    const onSubmit = async () => {
+        if (!form.name.trim()) {
+            setError("Название кластера обязательно для заполнения");
+            return;
+        }
+
+        setPending(true);
+        setError(null);
+        try {
+            const cleanData = {
+                name: form.name.trim(),
+                direction: form.direction?.trim() || null,
+                page_type: form.page_type?.trim() || null,
+                has_core: form.has_core,
+                has_brief: form.has_brief,
+                is_published: form.is_published,
+                demand: Number(form.demand) || 0,
+                project_id: projectId
+            };
+
+            await upsertClusterRegistryRow(cleanData);
+            onSaved();
+            onClose();
+        } catch (e: any) {
+            setError(e?.message || "Не удалось создать кластер");
+        } finally {
+            setPending(false);
+        }
+    };
+
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-rose rounded-3xl shadow-2xl w-[600px] max-w-[95vw] max-h-[90vh] overflow-hidden border border-white/20">
+                {/* Заголовок */}
+                <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-100 flex items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-[var(--color-primary-hover)] text-white">
+                            <Plus className="w-5 h-5" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900">Добавить новый кластер</h2>
+                    </div>
+                    <button
+                        className="ml-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                        onClick={onClose}
+                        aria-label="Закрыть"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Содержимое */}
+                <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+                    {/* Ошибка */}
+                    {error && (
+                        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-sm">{error}</span>
+                        </div>
+                    )}
+
+                    {/* Основные поля */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <Database className="w-5 h-5 text-[var(--color-primary)]" />
+                            Информация о кластере
+                        </h3>
+
+                        <div className="space-y-4">
+                            {/* Название кластера */}
+                            <div className="relative">
+                                <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Название кластера *"
+                                    value={form.name}
+                                    onChange={(e) => setField("name", e.target.value)}
+                                />
+                            </div>
+
+                            {/* Направление */}
+                            <div className="relative">
+                                <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Направление кластера"
+                                    value={form.direction}
+                                    onChange={(e) => setField("direction", e.target.value)}
+                                />
+                            </div>
+
+                            {/* Тип страницы */}
+                            <div className="relative">
+                                <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Тип страницы"
+                                    value={form.page_type}
+                                    onChange={(e) => setField("page_type", e.target.value)}
+                                />
+                            </div>
+
+                            {/* Спрос */}
+                            <div className="relative">
+                                <BarChart3 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="number"
+                                    min="0"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                    placeholder="Уровень спроса"
+                                    value={form.demand}
+                                    onChange={(e) => setField("demand", e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Статусы */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                            <Settings className="w-5 h-5 text-[var(--color-primary)]" />
+                            Статусы и флаги
+                        </h3>
+
+                        <div className="space-y-4">
+                            {/* Ядро */}
+                            <label className="flex items-center gap-3 bg-blue-50 rounded-xl p-3 cursor-pointer hover:bg-blue-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.has_core}
+                                    onChange={(e) => setField("has_core", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.has_core
+                                        ? 'bg-[var(--color-primary-hover)] border-[var(--color-primary-hover)]'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.has_core && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Target className="w-5 h-5 text-blue-600"/>
+                                    <span className="text-sm font-medium text-blue-700">Есть ядро</span>
+                                </div>
+                            </label>
+
+                            {/* ТЗ */}
+                            <label className="flex items-center gap-3 bg-purple-50 rounded-xl p-3 cursor-pointer hover:bg-purple-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.has_brief}
+                                    onChange={(e) => setField("has_brief", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.has_brief
+                                        ? 'bg-purple-600 border-purple-600'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.has_brief && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-purple-600"/>
+                                    <span className="text-sm font-medium text-purple-700">Есть техническое задание</span>
+                                </div>
+                            </label>
+
+                            {/* Размещено */}
+                            <label className="flex items-center gap-3 bg-green-50 rounded-xl p-3 cursor-pointer hover:bg-green-100 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={form.is_published}
+                                    onChange={(e) => setField("is_published", e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-5 h-5 rounded border-2 transition-colors ${
+                                    form.is_published
+                                        ? 'bg-green-600 border-green-600'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}>
+                                    {form.is_published && <CheckSquare className="w-5 h-5 text-white"/>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Globe className="w-5 h-5 text-green-600"/>
+                                    <span className="text-sm font-medium text-green-700">Размещено на сайте</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Футер */}
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+                    <button
+                        className="btn-coffeeDark text-sm transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
+                        onClick={onClose}
+                        disabled={pending}
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        className="flex items-center gap-2 text-[var(--color-primary)] text-sm bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={pending || !form.name.trim()}
+                        onClick={onSubmit}
+                    >
+                        <Plus className="w-4 h-4" />
+                        {pending ? "Создание..." : "Создать"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function ClusterRegistryPage() {
     const qc = useQueryClient();
     const [projectId, setProjectId] = useState<string>("");
 
-    // 🔎 фильтры
-    const [q, setQ] = useState("");                       // поиск по названию кластера (contains)
-    const [dirs, setDirs] = useState<string[]>([]);       // выбранные направления (мульти)
-    const [types, setTypes] = useState<string[]>([]);     // выбранные типы страниц (мульти)
+    // 🔎 фильтры и поиск
+    const [q, setQ] = useState("");
+    const [dirs, setDirs] = useState<string[]>([]);
+    const [types, setTypes] = useState<string[]>([]);
+
+    // 🔄 сортировка
+    const [sortField, setSortField] = useState<string>("");
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+    // 📝 модалки
+    const [editCluster, setEditCluster] = useState<any | null>(null);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const projects = useQuery({
         queryKey: ["projects", { archived: false }],
@@ -27,20 +591,40 @@ export default function ClusterRegistryPage() {
         queryFn: () => projectId ? listClusterRegistry(projectId) : Promise.resolve([]),
     });
 
-    const add = useMutation({
-        mutationFn: (row: any) => upsertClusterRegistryRow(row),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ["cluster_registry", projectId] }),
-    });
-    const patch = useMutation({
-        mutationFn: ({ id, patch }: any) => updateClusterRegistryRow(id, patch),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ["cluster_registry", projectId] }),
-    });
     const del = useMutation({
         mutationFn: (id: string) => deleteClusterRegistryRow(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["cluster_registry", projectId] }),
     });
 
-    // опции для мультиселектов (уникальные значения из данных)
+    // Функция сортировки
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    // Компонент заголовка с сортировкой
+    const SortableHeader = ({ field, children }: { field: string; children: React.ReactNode }) => {
+        const isActive = sortField === field;
+        const Icon = isActive
+            ? (sortDirection === 'asc' ? ArrowUp : ArrowDown)
+            : ArrowUpDown;
+
+        return (
+            <button
+                className="flex items-center gap-2 font-semibold text-gray-700 hover:text-[var(--color-primary)] transition-colors"
+                onClick={() => handleSort(field)}
+            >
+                {children}
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[var(--color-primary)]' : 'text-gray-400'}`} />
+            </button>
+        );
+    };
+
+    // опции для мультиселектов
     const { dirOptions, typeOptions } = useMemo(() => {
         const data = reg.data || [];
         const dirSet = new Set<string>();
@@ -55,25 +639,62 @@ export default function ClusterRegistryPage() {
         };
     }, [reg.data]);
 
-    // клиентская фильтрация
+    // клиентская фильтрация и сортировка
     const filtered = useMemo(() => {
         const data = reg.data || [];
         const needle = q.trim().toLowerCase();
 
-        return data.filter((r: any) => {
-            // по названию
+        // Фильтрация
+        let result = data.filter((r: any) => {
             const okName = !needle || (r.name || "").toLowerCase().includes(needle);
-            // по направлению
             const okDir = dirs.length === 0 || (r.direction && dirs.includes(r.direction));
-            // по типу страницы
             const okType = types.length === 0 || (r.page_type && types.includes(r.page_type));
             return okName && okDir && okType;
         });
-    }, [reg.data, q, dirs, types]);
+
+        // Сортировка
+        if (sortField) {
+            result.sort((a, b) => {
+                let aVal = a[sortField];
+                let bVal = b[sortField];
+
+                // Обработка разных типов данных
+                if (sortField === 'demand') {
+                    aVal = Number(aVal) || 0;
+                    bVal = Number(bVal) || 0;
+                } else if (typeof aVal === 'boolean') {
+                    aVal = aVal ? 1 : 0;
+                    bVal = bVal ? 1 : 0;
+                } else {
+                    aVal = String(aVal || '').toLowerCase();
+                    bVal = String(bVal || '').toLowerCase();
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }, [reg.data, q, dirs, types, sortField, sortDirection]);
+
+    // Статистика
+    const statistics = useMemo(() => {
+        const data = reg.data || [];
+        return {
+            total: data.length,
+            withCore: data.filter(r => r.has_core).length,
+            withBrief: data.filter(r => r.has_brief).length,
+            published: data.filter(r => r.is_published).length,
+            totalDemand: data.reduce((sum, r) => sum + (r.demand || 0), 0)
+        };
+    }, [reg.data]);
 
     // CSV импорт
     const [csvUploading, setCsvUploading] = useState(false);
-    const [csvResult, setCsvResult] = useState<null | { processed:number; created:number; updated:number; errors:string[] }>(null);
+    const [csvResult, setCsvResult] = useState<null | { processed: number; created: number; updated: number; errors: string[] }>(null);
+
     const onCsvUpload = async (f: File | null) => {
         if (!f || !projectId) return;
         setCsvUploading(true);
@@ -97,469 +718,397 @@ export default function ClusterRegistryPage() {
         if (!projectId && projects.data?.length) setProjectId(projects.data[0].id);
     }, [projects.data, projectId]);
 
-    // вспомогательно: чтение опций из <select multiple>
-    const readMulti = (sel: HTMLSelectElement): string[] =>
-        Array.from(sel.selectedOptions).map(o => o.value);
-
     const resetFilters = () => {
         setQ("");
         setDirs([]);
         setTypes([]);
+        setSortField("");
+        setSortDirection('asc');
     };
 
-    const hasActiveFilters = q || dirs.length || types.length;
+    const hasActiveFilters = q || dirs.length || types.length || sortField;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* Заголовок страницы */}
-                <div className="text-center py-8">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
+        <div className="min-h-screen from-gray-50 via-white to-blue-50/30">
+            <div className="p-6 space-y-6">
+                {/* Заголовок */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-2xl bg-[var(--color-primary-hover)] text-white">
+                            <Database className="w-6 h-6" />
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-800">Реестр кластеров</h1>
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text">
+                                Семантика
+                            </h1>
+                            <p className="text-gray-500 mt-1">
+                                Управление кластерами и направлениями • Всего: {statistics.total}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-slate-600 max-w-2xl mx-auto">
-                        Управляйте кластерами, направлениями и структурой данных ваших проектов
-                    </p>
+
+                    <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-2 btn-coffeeDark transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            {csvUploading ? "Импортируем..." : "Импорт CSV"}
+                            <input
+                                type="file"
+                                accept=".csv"
+                                className="hidden"
+                                onChange={(e) => onCsvUpload(e.target.files?.[0] || null)}
+                                disabled={csvUploading || !projectId}
+                            />
+                        </label>
+
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            disabled={!projectId}
+                            className="flex items-center gap-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-white transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Добавить кластер
+                        </button>
+                    </div>
                 </div>
 
                 {/* Выбор проекта */}
-                <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8">
-                    <div className="flex items-center gap-6">
+                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl z-40 relative">
+                    <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                </svg>
+                            <div className="p-2 rounded-xl bg-[var(--color-coffee)] text-[var(--color-coffee-text)]">
+                                <Target className="w-5 h-5" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                                    Выберите проект
-                                </label>
-                                <div className="text-xs text-slate-500">Активный проект для работы с реестром</div>
-                            </div>
+                            <span className="font-semibold text-gray-900">Проект:</span>
                         </div>
-                        <div className="relative flex-1 max-w-md">
-                            <select
-                                className="w-full border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl px-4 py-3 text-base bg-white transition-all appearance-none pr-10"
+                        <div className="relative z-50 flex-1 max-w-md">
+                            <Select
+                                className="w-full"
                                 value={projectId}
-                                onChange={e => setProjectId(e.target.value)}
-                            >
-                                <option value="">— Выберите проект —</option>
-                                {(projects.data || []).map((p: any) => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                                onChange={(v) => setProjectId(v || "")}
+                                options={(projects.data || []).map(p => ({ label: p.name, value: p.id }))}
+                                placeholder="Выберите проект"
+                            />
                         </div>
                     </div>
                 </div>
 
-                {projectId && (
+                {projectId ? (
                     <>
-                        {/* Фильтры и поиск */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-lg font-semibold text-slate-800">Фильтры и поиск</h3>
-                                {hasActiveFilters && (
-                                    <div className="ml-auto">
-                                        <button
-                                            type="button"
-                                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-                                            onClick={resetFilters}
-                                        >
-                                            Сбросить все фильтры
-                                        </button>
+                        {/* Статистические карточки */}
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Всего кластеров</p>
+                                        <p className="text-2xl font-bold text-all mt-1">{statistics.total}</p>
                                     </div>
-                                )}
+                                    <div className="p-2 bg-gradient-to-br bg-base rounded-xl">
+                                        <BarChart3 className="w-5 h-5 text-white" />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Поиск */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-slate-700">
-                                        Поиск по кластеру
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            value={q}
-                                            onChange={e => setQ(e.target.value)}
-                                            placeholder="Введите название кластера..."
-                                            className="w-full border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl px-4 py-3 pl-10 text-base transition-all"
-                                        />
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                        {q && (
-                                            <button
-                                                onClick={() => setQ("")}
-                                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        )}
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Ядро</p>
+                                        <p className="text-2xl font-bold text-all mt-1">{statistics.withCore}</p>
+                                    </div>
+                                    <div className="p-2 bg-gradient-to-br bg-blue rounded-xl">
+                                        <Target className="w-5 h-5 text-white" />
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Направления */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-slate-700">
-                                        Направления ({dirs.length} выбрано)
-                                    </label>
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">С ТЗ</p>
+                                        <p className="text-2xl font-bold text-all mt-1">{statistics.withBrief}</p>
+                                    </div>
+                                    <div className="p-2 bg-gradient-to-br bg-green rounded-xl">
+                                        <FileText className="w-5 h-5 text-white" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Размещено</p>
+                                        <p className="text-2xl font-bold text-all mt-1">{statistics.published}</p>
+                                    </div>
+                                    <div className="p-2 bg-gradient-to-br bg-pink rounded-xl">
+                                        <Globe className="w-5 h-5 text-white" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Общий спрос</p>
+                                        <p className="text-2xl font-bold text-all mt-1">{statistics.totalDemand}</p>
+                                    </div>
+                                    <div className="p-2 bg-gradient-to-br bg-purple rounded-xl">
+                                        <BarChart3 className="w-5 h-5 text-white" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Панель фильтров и поиска */}
+                        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-gray-700">
+                                        <Filter className="w-5 h-5" />
+                                        <span className="text-lg font-semibold">Фильтры и поиск</span>
+                                    </div>
+                                    {hasActiveFilters && (
+                                        <button
+                                            onClick={resetFilters}
+                                            className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-3xl btn-pink transition-colors"
+                                        >
+                                            <RotateCcw className="w-4 h-4" />
+                                            Сбросить все
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    {/* Поиск */}
                                     <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <input
+                                            className="w-full pl-12 pr-4 py-3 bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-all duration-200"
+                                            placeholder="Поиск по названию..."
+                                            value={q}
+                                            onChange={(e) => setQ(e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Направления */}
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Направления ({dirs.length})
+                                        </label>
                                         <select
                                             multiple
-                                            size={Math.min(6, Math.max(3, dirOptions.length))}
-                                            className="w-full border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl px-3 py-2 text-sm transition-all bg-white"
+                                            size={3}
+                                            className="w-full border-2 border-[var(--color-primary)]/20 focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] rounded-xl px-3 py-2 text-sm transition-all bg-white/80"
                                             value={dirs}
-                                            onChange={(e) => setDirs(readMulti(e.target))}
+                                            onChange={(e) => setDirs(Array.from(e.target.selectedOptions).map(o => o.value))}
                                         >
-                                            {dirOptions.length === 0 && (
-                                                <option disabled className="text-slate-400">Нет направлений</option>
-                                            )}
                                             {dirOptions.map((d) => (
                                                 <option key={d} value={d} className="py-1">{d}</option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
 
-                                {/* Типы страниц */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-slate-700">
-                                        Типы страниц ({types.length} выбрано)
-                                    </label>
-                                    <div className="relative">
+                                    {/* Типы страниц */}
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Типы страниц ({types.length})
+                                        </label>
                                         <select
                                             multiple
-                                            size={Math.min(6, Math.max(3, typeOptions.length))}
-                                            className="w-full border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl px-3 py-2 text-sm transition-all bg-white"
+                                            size={3}
+                                            className="w-full border-2 border-[var(--color-primary)]/20 focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] rounded-xl px-3 py-2 text-sm transition-all bg-white/80"
                                             value={types}
-                                            onChange={(e) => setTypes(readMulti(e.target))}
+                                            onChange={(e) => setTypes(Array.from(e.target.selectedOptions).map(o => o.value))}
                                         >
-                                            {typeOptions.length === 0 && (
-                                                <option disabled className="text-slate-400">Нет типов страниц</option>
-                                            )}
                                             {typeOptions.map((t) => (
                                                 <option key={t} value={t} className="py-1">{t}</option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Импорт CSV и статистика */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <label className="block font-semibold text-slate-800 cursor-pointer">
-                                            {csvUploading ? "Импортируем..." : "Импорт CSV файла"}
-                                            <input
-                                                type="file"
-                                                accept=".csv"
-                                                className="hidden"
-                                                onChange={(e) => onCsvUpload(e.target.files?.[0] || null)}
-                                                disabled={csvUploading}
-                                            />
+                                    {/* Активная сортировка */}
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Сортировка
                                         </label>
-                                        <div className="text-sm text-slate-500">Загрузите CSV файл для массового импорта</div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-6 text-sm">
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold text-indigo-600">{filtered.length}</div>
-                                        <div className="text-slate-500">Показано</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold text-slate-600">{reg.data?.length ?? 0}</div>
-                                        <div className="text-slate-500">Всего</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {csvResult && (
-                                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-                                    <div className="flex items-start gap-3">
-                                        <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                        <div className="text-sm">
-                                            <div className="font-medium text-green-800 mb-1">Импорт выполнен успешно!</div>
-                                            <div className="text-green-700">
-                                                Обработано: <strong>{csvResult.processed}</strong> •
-                                                Создано: <strong>{csvResult.created}</strong> •
-                                                Обновлено: <strong>{csvResult.updated}</strong>
-                                            </div>
-                                            {csvResult.errors?.length > 0 && (
-                                                <div className="mt-2">
-                                                    <div className="font-medium text-red-800">Ошибки:</div>
-                                                    <ul className="list-disc ml-5 mt-1 text-red-600">
-                                                        {csvResult.errors.map((er, i) => <li key={i}>{er}</li>)}
-                                                    </ul>
+                                        <div className="bg-white/80 border-2 border-[var(--color-primary)]/20 rounded-xl px-4 py-3">
+                                            {sortField ? (
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <span className="text-gray-600">По полю:</span>
+                                                    <span className="font-medium text-[var(--color-primary)]">
+                                                        {sortField === 'name' && 'Название'}
+                                                        {sortField === 'direction' && 'Направление'}
+                                                        {sortField === 'page_type' && 'Тип страницы'}
+                                                        {sortField === 'has_core' && 'Ядро'}
+                                                        {sortField === 'has_brief' && 'ТЗ'}
+                                                        {sortField === 'is_published' && 'Размещено'}
+                                                        {sortField === 'demand' && 'Спрос'}
+                                                    </span>
+                                                    {sortDirection === 'asc' ? <ArrowUp className="w-4 h-4 text-[var(--color-primary)]" /> : <ArrowDown className="w-4 h-4 text-[var(--color-primary)]" />}
                                                 </div>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">Кликните на заголовок колонки</span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Таблица данных */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 overflow-hidden">
-                            <div className="p-8 border-b border-slate-200">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-slate-800">Данные реестра</h3>
-                                </div>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                {/* Заголовки таблицы */}
-                                <div className="grid grid-cols-8 gap-4 px-8 py-4 bg-slate-50 text-sm font-semibold text-slate-600 border-b border-slate-200">
-                                    <div>Кластер</div>
-                                    <div>Направление</div>
-                                    <div>Тип страницы</div>
-                                    <div className="text-center">Ядро</div>
-                                    <div className="text-center">ТЗ</div>
-                                    <div className="text-center">Размещено</div>
-                                    <div className="text-center">Спрос</div>
-                                    <div className="text-center">Действия</div>
-                                </div>
-
-                                {/* Строки данных */}
-                                <div className="divide-y divide-slate-100">
-                                    {filtered.map((r: any, index: number) => (
-                                        <div key={r.id} className={`grid grid-cols-8 gap-4 px-8 py-4 items-center hover:bg-slate-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                                            <div className="font-medium text-slate-800 truncate" title={r.name}>{r.name}</div>
-                                            <input
-                                                defaultValue={r.direction || ""}
-                                                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                                placeholder="Направление"
-                                                onBlur={e => patch.mutate({ id: r.id, patch: { direction: e.target.value || null } })}
-                                            />
-                                            <input
-                                                defaultValue={r.page_type || ""}
-                                                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                                placeholder="Тип страницы"
-                                                onBlur={e => patch.mutate({ id: r.id, patch: { page_type: e.target.value || null } })}
-                                            />
-                                            <div className="flex justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    defaultChecked={r.has_core}
-                                                    className="w-4 h-4 accent-indigo-600 rounded"
-                                                    onChange={e => patch.mutate({ id: r.id, patch: { has_core: e.target.checked } })}
-                                                />
+                                {csvResult && (
+                                    <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                                        <div className="flex items-start gap-3">
+                                            <CheckSquare className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <div className="text-sm">
+                                                <div className="font-medium text-green-800 mb-1">Импорт выполнен успешно!</div>
+                                                <div className="text-green-700">
+                                                    Обработано: <strong>{csvResult.processed}</strong> •
+                                                    Создано: <strong>{csvResult.created}</strong> •
+                                                    Обновлено: <strong>{csvResult.updated}</strong>
+                                                </div>
+                                                {csvResult.errors?.length > 0 && (
+                                                    <div className="mt-2">
+                                                        <div className="font-medium text-red-800">Ошибки:</div>
+                                                        <ul className="list-disc ml-5 mt-1 text-red-600">
+                                                            {csvResult.errors.map((er, i) => <li key={i}>{er}</li>)}
+                                                        </ul>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    defaultChecked={r.has_brief}
-                                                    className="w-4 h-4 accent-indigo-600 rounded"
-                                                    onChange={e => patch.mutate({ id: r.id, patch: { has_brief: e.target.checked } })}
-                                                />
-                                            </div>
-                                            <div className="flex justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    defaultChecked={r.is_published}
-                                                    className="w-4 h-4 accent-green-600 rounded"
-                                                    onChange={e => patch.mutate({ id: r.id, patch: { is_published: e.target.checked } })}
-                                                />
-                                            </div>
-                                            <input
-                                                type="number"
-                                                defaultValue={r.demand}
-                                                className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-20 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                                min="0"
-                                                onBlur={e => patch.mutate({ id: r.id, patch: { demand: Number(e.target.value || 0) } })}
-                                            />
-                                            <div className="flex justify-center">
-                                                <button
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all"
-                                                    onClick={() => del.mutate(r.id)}
-                                                    title="Удалить запись"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {filtered.length === 0 && (
-                                    <div className="text-center py-12 text-slate-400">
-                                        <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                        <div className="text-lg font-medium mb-1">
-                                            {hasActiveFilters ? "Ничего не найдено" : "Реестр пуст"}
-                                        </div>
-                                        <div className="text-sm">
-                                            {hasActiveFilters ? "Попробуйте изменить параметры поиска" : "Добавьте первый кластер в реестр"}
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
 
-                                {/* Форма добавления */}
-                                <div className="border-t-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50">
-                                    <div className="px-8 py-6">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </div>
-                                            <h4 className="font-semibold text-slate-800">Добавить новый кластер</h4>
-                                        </div>
-                                        <AddForm onAdd={(row) => add.mutate({ ...row, project_id: projectId })} />
+                        {/* Таблица с отдельными колонками */}
+                        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-xl">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                        <Database className="w-5 h-5 text-[var(--color-primary)]" />
+                                        Данные реестра
+                                    </h3>
+                                    <div className="text-sm text-gray-600">
+                                        Показано: <span className="font-semibold">{filtered.length}</span> из <span className="font-semibold">{reg.data?.length ?? 0}</span>
                                     </div>
+                                </div>
+
+                                <div className="overflow-x-auto rounded-2xl border border-gray-200/50">
+                                    {/* Заголовки с сортировкой */}
+                                    <div className="grid grid-cols-8 gap-4 px-6 py-4 bg-gray-50 text-sm border-b border-gray-200">
+                                        <div><SortableHeader field="name">Кластер</SortableHeader></div>
+                                        <div><SortableHeader field="direction">Направление</SortableHeader></div>
+                                        <div><SortableHeader field="page_type">Тип страницы</SortableHeader></div>
+                                        <div className="text-center"><SortableHeader field="has_core">Ядро</SortableHeader></div>
+                                        <div className="text-center"><SortableHeader field="has_brief">ТЗ</SortableHeader></div>
+                                        <div className="text-center"><SortableHeader field="is_published">Опубликовано</SortableHeader></div>
+                                        <div className="text-center"><SortableHeader field="demand">Спрос</SortableHeader></div>
+                                        <div className="text-center">Действия</div>
+                                    </div>
+
+                                    {/* Строки */}
+                                    <div className="divide-y divide-gray-100">
+                                        {filtered.map((r: any, index: number) => (
+                                            <div key={r.id} className={`grid grid-cols-8 gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                                                <div className="font-medium text-gray-800 truncate" title={r.name}>{r.name}</div>
+                                                <div className="text-sm text-gray-600">{r.direction || "—"}</div>
+                                                <div className="text-sm text-gray-600">{r.page_type || "—"}</div>
+
+                                                {/* Ядро */}
+                                                <div className="flex justify-center">
+                                                    {r.has_core ?
+                                                        <CheckSquare className="w-5 h-5 text-blue-600" title="Ядро" /> :
+                                                        <Square className="w-5 h-5 text-gray-300" title="Нет ядра" />
+                                                    }
+                                                </div>
+
+                                                {/* ТЗ */}
+                                                <div className="flex justify-center">
+                                                    {r.has_brief ?
+                                                        <CheckSquare className="w-5 h-5 text-purple-600" title="Есть ТЗ" /> :
+                                                        <Square className="w-5 h-5 text-gray-300" title="Нет ТЗ" />
+                                                    }
+                                                </div>
+
+                                                {/* Опубликовано */}
+                                                <div className="flex justify-center">
+                                                    {r.is_published ?
+                                                        <CheckSquare className="w-5 h-5 text-green-600" title="Опубликовано" /> :
+                                                        <Square className="w-5 h-5 text-gray-300" title="Не опубликовано" />
+                                                    }
+                                                </div>
+
+                                                {/* Спрос */}
+                                                <div className="text-center text-sm font-medium">{r.demand || 0}</div>
+
+                                                {/* Действия */}
+                                                <div className="flex justify-center gap-2">
+                                                    <button
+                                                        onClick={() => setEditCluster(r)}
+                                                        className="p-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all"
+                                                        title="Редактировать"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm('Удалить этот кластер?')) {
+                                                                del.mutate(r.id);
+                                                            }
+                                                        }}
+                                                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
+                                                        title="Удалить"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {filtered.length === 0 && (
+                                        <div className="text-center py-12 text-gray-400 bg-white">
+                                            <Database className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                            <div className="text-lg font-medium mb-1">
+                                                {hasActiveFilters ? "Ничего не найдено" : "Реестр пуст"}
+                                            </div>
+                                            <div className="text-sm">
+                                                {hasActiveFilters ? "Попробуйте изменить параметры поиска" : "Добавьте первый кластер в реестр"}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </>
-                )}
-
-                {!projectId && (
+                ) : (
                     <div className="text-center py-16">
-                        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
+                        <div className="w-24 h-24 bg-[var(--color-coffee)]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Target className="w-12 h-12 text-[var(--color-coffee-text)]" />
                         </div>
-                        <h3 className="text-xl font-semibold text-slate-700 mb-2">Выберите проект</h3>
-                        <p className="text-slate-500">Для работы с реестром кластеров необходимо выбрать активный проект</p>
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">Выберите проект</h3>
+                        <p className="text-gray-500">Для работы с реестром кластеров необходимо выбрать активный проект</p>
                     </div>
                 )}
-            </div>
-        </div>
-    );
-}
 
-function AddForm({ onAdd }: { onAdd: (row: any) => void }) {
-    const [name, setName] = useState("");
-    const [direction, setDirection] = useState("");
-    const [pageType, setPageType] = useState("");
-    const [hasCore, setHasCore] = useState(false);
-    const [hasBrief, setHasBrief] = useState(false);
-    const [isPublished, setIsPublished] = useState(false);
-    const [demand, setDemand] = useState<number>(0);
+                {/* Модалки */}
+                <ClusterEditModal
+                    open={!!editCluster}
+                    cluster={editCluster}
+                    onClose={() => setEditCluster(null)}
+                    onSaved={() => {
+                        setEditCluster(null);
+                        qc.invalidateQueries({ queryKey: ["cluster_registry", projectId] });
+                    }}
+                />
 
-    const handleSubmit = () => {
-        if (!name.trim()) return;
-
-        onAdd({
-            name: name.trim(),
-            direction: direction.trim() || undefined,
-            page_type: pageType.trim() || undefined,
-            has_core: hasCore,
-            has_brief: hasBrief,
-            is_published: isPublished,
-            demand
-        });
-
-        // Очищаем форму после добавления
-        setName("");
-        setDirection("");
-        setPageType("");
-        setHasCore(false);
-        setHasBrief(false);
-        setIsPublished(false);
-        setDemand(0);
-    };
-
-    return (
-        <div className="grid grid-cols-8 gap-4 items-center">
-            <input
-                placeholder="Название кластера *"
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                value={name}
-                onChange={e => setName(e.target.value)}
-            />
-            <input
-                placeholder="Направление"
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                value={direction}
-                onChange={e => setDirection(e.target.value)}
-            />
-            <input
-                placeholder="Тип страницы"
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                value={pageType}
-                onChange={e => setPageType(e.target.value)}
-            />
-            <div className="flex justify-center">
-                <input
-                    type="checkbox"
-                    checked={hasCore}
-                    onChange={e => setHasCore(e.target.checked)}
-                    className="w-4 h-4 accent-indigo-600 rounded"
+                <ClusterAddModal
+                    open={showAddModal}
+                    projectId={projectId}
+                    onClose={() => setShowAddModal(false)}
+                    onSaved={() => {
+                        setShowAddModal(false);
+                        qc.invalidateQueries({ queryKey: ["cluster_registry", projectId] });
+                    }}
                 />
             </div>
-            <div className="flex justify-center">
-                <input
-                    type="checkbox"
-                    checked={hasBrief}
-                    onChange={e => setHasBrief(e.target.checked)}
-                    className="w-4 h-4 accent-indigo-600 rounded"
-                />
-            </div>
-            <div className="flex justify-center">
-                <input
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={e => setIsPublished(e.target.checked)}
-                    className="w-4 h-4 accent-green-600 rounded"
-                />
-            </div>
-            <input
-                type="number"
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-20 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                value={demand}
-                onChange={e => setDemand(Number(e.target.value || 0))}
-                min="0"
-            />
-            <button
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl px-4 py-2 font-semibold transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-                onClick={handleSubmit}
-                disabled={!name.trim()}
-            >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Добавить
-            </button>
         </div>
     );
 }

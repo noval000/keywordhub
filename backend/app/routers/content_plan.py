@@ -35,6 +35,7 @@ def _apply_str_fields(obj, payload: dict):
         "reviewing_doctor",
         "review",
         "meta_seo",
+        "publish_allowed",
         "comment",
         "link",
     ):
@@ -46,6 +47,20 @@ def _apply_str_fields(obj, payload: dict):
         obj.publish_date = payload.get("publish_date")
     if "doctor_approved" in payload:
             obj.doctor_approved = payload.get("doctor_approved")
+    if "publish_allowed" in payload:
+            publish_allowed_value = payload.get("publish_allowed")
+
+            # Сохраняем исходное значение
+            obj.publish_allowed = _str_or_none(publish_allowed_value)
+
+            # Если значение "готово" - устанавливаем doctor_approved = True
+            if publish_allowed_value:
+                value_str = str(publish_allowed_value).strip().lower()
+                if value_str in ["готово", "да", "yes", "true", "1"]:
+                    obj.doctor_approved = True
+                    print(f"✅ Установлен doctor_approved=True для значения '{publish_allowed_value}'")
+                elif value_str in ["нет", "no", "false", "0"]:
+                    obj.doctor_approved = False
 
 
 async def check_content_plan_edit_access(db: AsyncSession, user: User, item: ContentPlanItem):
@@ -544,6 +559,8 @@ async def import_content_plan(
             updated_by=user.id,
         )
         payload = it.model_dump(exclude_unset=True)
+
+
         _apply_str_fields(row, payload)
 
         # При импорте автор может быть задан в данных или текущий пользователь
