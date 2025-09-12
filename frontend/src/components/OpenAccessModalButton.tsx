@@ -10,7 +10,7 @@ export default function OpenAccessModalButton() {
 
     return (
         <button
-            className="inline-flex items-center gap-1 border border-slate-200 rounded px-3 py-1 text-sm hover:bg-slate-50"
+            className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2"
             onClick={() => open(<GlobalAccessModal />)}
         >
             <ShieldCheck className="size-4" />

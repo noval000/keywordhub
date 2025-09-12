@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AgGridReact } from "ag-grid-react";
+import '../globals.css'
 
 import type { AgGridReact as AgGridReactType } from "ag-grid-react";
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
@@ -530,7 +531,7 @@ export default function ContentPlanPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+        <div className="min-h-screen from-gray-50 via-white to-blue-50/30">
             <div className="p-6 space-y-6">
                 {/* Заголовок */}
                 <div className="flex items-center justify-between">
@@ -539,7 +540,7 @@ export default function ContentPlanPage() {
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                            <h1 className="text-all text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text">
                                 Контент-план
                             </h1>
                             <p className="text-gray-500 mt-1">
@@ -551,7 +552,8 @@ export default function ContentPlanPage() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setShowImport(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-white/80 rounded-xl transition-all duration-200 border border-gray-200/50"
+                            className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+"
                         >
                             <Download className="w-4 h-4" />
                             Импорт
@@ -559,7 +561,7 @@ export default function ContentPlanPage() {
 
                         <button
                             onClick={() => setShowAdd(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            className="flex items-center gap-2 text-[var(--color-primary)] bg-transparent border-2 border-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-3xl px-4 py-2"
                         >
                             <Plus className="w-4 h-4" />
                             Добавить
@@ -645,7 +647,8 @@ export default function ContentPlanPage() {
                                     <button
                                         key={preset.name}
                                         onClick={preset.apply}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                                        className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+"
                                     >
                                         <Icon className="w-4 h-4" />
                                         {preset.name}
@@ -782,7 +785,8 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+"
                                     >
                                         Текущий
                                     </button>
@@ -796,7 +800,8 @@ export default function ContentPlanPage() {
                                             setPeriodMonthUI(ym);
                                             setPeriod(formatPeriodRuFromMonthInput(ym) || "");
                                         }}
-                                        className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        className="bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+"
                                     >
                                         Предыдущий
                                     </button>
@@ -804,7 +809,8 @@ export default function ContentPlanPage() {
 
                                 <button
                                     onClick={() => setCompact((v) => !v)}
-                                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-white/80 rounded-xl transition-all duration-200 border border-gray-200/50"
+                                    className="flex items-center gap-2 bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2
+"
                                 >
                                     {compact ? <Expand className="w-4 h-4" /> : <Shrink className="w-4 h-4" />}
                                     {compact ? "Расширить" : "Сжать"}
@@ -864,13 +870,13 @@ export default function ContentPlanPage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => gridRef.current?.api.selectAll()}
-                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                                className="px-4 py-2 text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl"
                             >
                                 Выделить всё
                             </button>
                             <button
                                 onClick={() => gridRef.current?.api.deselectAll()}
-                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                                className="text-sm bg-[var(--color-coffee)] text-[var(--color-coffee-text)] hover:bg-[#b8a99f] hover:text-[var(--color-whte)] transition-colors duration-300 ease-in-out rounded-2xl px-4 py-2"
                             >
                                 Снять выделение
                             </button>
